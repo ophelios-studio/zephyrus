@@ -1,0 +1,22 @@
+preset: recommended
+
+finder:
+  name:
+    - "*.php"
+  exclude:
+    - "tests"
+    - "vendor"
+  not-name:
+    - "*FileValidations.php"
+
+disabled:
+  - post_increment
+  - blank_line_before_return
+  - single_blank_line_before_namespace
+  - align_double_arrow
+  - blank_line_after_opening_tag
+  - phpdoc_align
+  - single_quote
+  - trailing_comma_in_multiline_array
+  - phpdoc_separation
+  - concat_without_spaces
