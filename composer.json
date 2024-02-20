@@ -1,10 +1,10 @@
 {
-  "name": "zephyrus/zephyrus",
+  "name": "ophelios/zephyrus",
   "description": "Simple PHP framework",
   "authors": [
     {
       "name": "David Tucker",
-      "email": "davidt2003@msn.com",
+      "email": "david.tucker@ophelios.com",
       "role": "Developer"
     }
   ],
