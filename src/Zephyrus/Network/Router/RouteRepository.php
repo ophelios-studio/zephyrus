@@ -234,6 +234,6 @@ class RouteRepository
      */
     public function addRoute(HttpMethod $method, RouteDefinition $route): void
     {
-        $this->routes[$method->value][] = $route;
+        $this->routes[$method->value][$route->getRoute()] = $route;
     }
 }

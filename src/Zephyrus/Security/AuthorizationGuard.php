@@ -21,20 +21,14 @@ class AuthorizationGuard
     public function run(): void
     {
         $failedRules = [];
-        $successRules = [];
-        $isStrict = $this->request->getRouteDefinition()->isStrictRuleInterpretation();
         $results = $this->getCorrespondingRuleResults();
         foreach ($results as $rule => $result) {
             if (!$result) {
                 $failedRules[] = $rule;
-            } else {
-                $successRules[] = $rule;
             }
         }
         if (!empty($failedRules)) {
-            if ($isStrict || empty($successRules)) {
-                throw new UnauthorizedAccessException($this->request->getMethod(), $this->request->getRoute(), $failedRules);
-            }
+            throw new UnauthorizedAccessException($this->request->getMethod(), $this->request->getRoute(), $failedRules);
         }
     }
 

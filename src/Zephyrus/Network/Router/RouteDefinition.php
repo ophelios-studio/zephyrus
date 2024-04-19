@@ -19,12 +19,12 @@ class RouteDefinition
     private array $argumentDefinitions; // List of URL arguments (e.g. id)
     private array $arguments = []; // List of key - value for the loaded arguments (e.g. id => 4)
     private array $authorizationRules = [];
-    private bool $strictRuleInterpretation = false;
 
     /**
      * Initiates a route definition from the given URL (which can include arguments, e.g. /products/{id}).
      *
      * @param string $route
+     * @param string $routeRoot
      */
     public function __construct(string $route, string $routeRoot = "")
     {
@@ -98,22 +98,15 @@ class RouteDefinition
      * AuthorizationRepository class.
      *
      * @param array $rules
-     * @param bool $strictInterpretation
      */
-    public function setAuthorizationRules(array $rules, bool $strictInterpretation = false): void
+    public function setAuthorizationRules(array $rules): void
     {
         $this->authorizationRules = $rules;
-        $this->strictRuleInterpretation = $strictInterpretation;
     }
 
     public function getAuthorizationRules(): array
     {
         return $this->authorizationRules;
-    }
-
-    public function isStrictRuleInterpretation(): bool
-    {
-        return $this->strictRuleInterpretation;
     }
 
     public function hasCallback(): bool

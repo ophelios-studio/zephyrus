@@ -3,7 +3,6 @@
 use InvalidArgumentException;
 use ReflectionClass;
 use ReflectionMethod;
-use stdClass;
 use Zephyrus\Exceptions\RouteArgumentException;
 use Zephyrus\Network\ContentType;
 use Zephyrus\Network\Request;
@@ -225,7 +224,7 @@ abstract class Controller
         return "";
     }
 
-    private static function initializeBaseAuthorizationRules(ReflectionClass $class): stdClass
+    private static function initializeBaseAuthorizationRules(ReflectionClass $class): array
     {
         $parentClasses = [];
         $currentClass = $class;
@@ -233,34 +232,26 @@ abstract class Controller
             $parentClasses[] = $currentClass;
         }
         array_unshift($parentClasses, $class);
+        $rules = [];
 
-        $result = (object) [
-            'rules' => [],
-            'strict' => false
-        ];
         for ($i = count($parentClasses) - 1; $i >= 0; $i--) {
             $currentClass = $parentClasses[$i];
             $attributes = $currentClass->getAttributes();
             foreach ($attributes as $attribute) {
                 if ($attribute->getName() == Authorize::class) {
                     $instance = $attribute->newInstance();
-                    $result = (object) [
-                        'rules' => $instance->getRules(),
-                        'strict' => $instance->isStrict()
-                    ];
+                    $rules = array_unique(array_merge($rules, $instance->getRules()));
                 }
             }
         }
-        return $result;
+        return $rules;
     }
 
     private static function initializeRoutesFromAttributes(RouteRepository $repository): void
     {
         $class = new ReflectionClass(static::class);
         $baseRoute = self::initializeBaseRoute($class);
-        $result = self::initializeBaseAuthorizationRules($class);
-        $baseRules = $result->rules;
-        $strictRules = $result->strict;
+        $rules = self::initializeBaseAuthorizationRules($class);
 
         $methods = $class->getMethods(ReflectionMethod::IS_PUBLIC);
         foreach ($methods as $method) {
@@ -268,10 +259,7 @@ abstract class Controller
             foreach ($attributes as $attribute) {
                 if ($attribute->getName() == Authorize::class) {
                     $instance = $attribute->newInstance();
-                    $baseRules = array_merge($baseRules, $instance->getRules());
-                    if ($instance->isStrict()) {
-                        $strictRules = $instance->isStrict();
-                    }
+                    $rules = array_merge($rules, $instance->getRules());
                 }
             }
             foreach ($attributes as $attribute) {
@@ -282,7 +270,7 @@ abstract class Controller
                     $route = new RouteDefinition($url, $baseRoute);
                     $route->setCallback([static::class, $method->name]);
                     $route->setAcceptedContentTypes($instance->getAcceptedContentTypes());
-                    $route->setAuthorizationRules($baseRules, $strictRules);
+                    $route->setAuthorizationRules($rules);
                     $repository->addRoute($instance->getMethod(), $route);
                 }
             }
