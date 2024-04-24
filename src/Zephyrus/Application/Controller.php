@@ -3,6 +3,7 @@
 use InvalidArgumentException;
 use ReflectionClass;
 use ReflectionMethod;
+use Zephyrus\Core\Session;
 use Zephyrus\Exceptions\RouteArgumentException;
 use Zephyrus\Network\ContentType;
 use Zephyrus\Network\Request;
@@ -180,6 +181,33 @@ abstract class Controller
             $root = $defaultRedirect;
         }
         return $this->redirect($root);
+    }
+
+    /**
+     * Keeps a reference to the previous route to which the user should be redirected eventually using the
+     * redirectPrevious method. Consider this method a "snapshot" of a certain route to return to later on. Can be
+     * useful for example when an edit form is accessible from two different places (e.g. a list and a detail), when
+     * you are in the details, after editing you should be redirected to the same page.
+     *
+     * @param string|null $route
+     * @return void
+     */
+    public function setPrevious(?string $route = null): void
+    {
+        if (is_null($route)) {
+            $route = $this->request->getRoute();
+        }
+        Session::set('ZF_PREVIOUS_ROUTE', $route);
+    }
+
+    public function getPrevious(): ?string
+    {
+        return Session::get('ZF_PREVIOUS_ROUTE');
+    }
+
+    public function redirectPrevious(): Response
+    {
+        return $this->redirect($this->getPrevious() ?? $this->request->getReferer());
     }
 
     /**
