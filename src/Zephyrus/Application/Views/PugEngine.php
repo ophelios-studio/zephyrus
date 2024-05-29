@@ -130,7 +130,7 @@ class PugEngine
             ? $this->configurations['cache_directory']
             : self::DEFAULT_CONFIGURATIONS['cache_directory'];
         $cacheUpdate = (isset($this->configurations['cache_update']))
-            ? (bool) $this->configurations['cache_update']
+            ? $this->configurations['cache_update']
             : self::DEFAULT_CONFIGURATIONS['cache_update'];
         if ($cacheEnabled && !Directory::exists($cacheDirectory)) {
             Directory::create($cacheDirectory);
