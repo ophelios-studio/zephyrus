@@ -4,7 +4,9 @@ use JsPhpize\JsPhpizePhug;
 use Phug\Optimizer;
 use Phug\Phug;
 use Phug\PhugException;
+use Phug\RendererException;
 use Zephyrus\Application\Configuration;
+use Zephyrus\Utilities\FileSystem\Directory;
 
 class PugEngine
 {
@@ -62,6 +64,14 @@ class PugEngine
         return new PugView($page, $this);
     }
 
+    /**
+     * @throws RendererException
+     */
+    public function cache(): array
+    {
+        return Phug::cacheDirectory(ROOT_DIR . '/app/Views', $this->options['cache_dir'], $this->options);
+    }
+
     public function renderFromString(string $pugCode, array $args = []): string
     {
         return Phug::render($pugCode, $args, $this->options);
@@ -117,11 +127,14 @@ class PugEngine
             ? (bool) $this->configurations['cache_enabled']
             : self::DEFAULT_CONFIGURATIONS['cache_enabled'];
         $cacheDirectory = (isset($this->configurations['cache_directory']))
-            ? (bool) $this->configurations['cache_directory']
+            ? $this->configurations['cache_directory']
             : self::DEFAULT_CONFIGURATIONS['cache_directory'];
         $cacheUpdate = (isset($this->configurations['cache_update']))
             ? (bool) $this->configurations['cache_update']
             : self::DEFAULT_CONFIGURATIONS['cache_update'];
+        if ($cacheEnabled && !Directory::exists($cacheDirectory)) {
+            Directory::create($cacheDirectory);
+        }
         $this->options['cache_dir'] = $cacheEnabled ? $cacheDirectory : false;
         $this->options['up_to_date_check'] = ($cacheUpdate == "always");
     }
