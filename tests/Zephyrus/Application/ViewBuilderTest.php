@@ -2,7 +2,7 @@
 
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Zephyrus\Application\Views\PugEngine;
+use Zephyrus\Application\Views\PhugEngine;
 use Zephyrus\Application\Views\PugView;
 
 class ViewBuilderTest extends TestCase
@@ -64,8 +64,8 @@ class ViewBuilderTest extends TestCase
         self::assertEquals('<p>Example 8</p>', $output);
     }
 
-    private function buildPugEngine(): PugEngine
+    private function buildPugEngine(): PhugEngine
     {
-        return new PugEngine(['cache_enabled' => false]);
+        return new PhugEngine(['cache_enabled' => false]);
     }
 }

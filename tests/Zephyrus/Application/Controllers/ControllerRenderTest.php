@@ -5,7 +5,7 @@ use RuntimeException;
 use Zephyrus\Application\Controller;
 use Zephyrus\Application\Feedback;
 use Zephyrus\Application\Flash;
-use Zephyrus\Application\Views\PugEngine;
+use Zephyrus\Application\Views\PhugEngine;
 use Zephyrus\Network\Response;
 
 class ControllerRenderTest extends TestCase
@@ -87,7 +87,7 @@ class ControllerRenderTest extends TestCase
             {
                 Flash::error("invalid");
                 Feedback::register(["email" => ["test"]]);
-                $engine = new PugEngine(['cache_enabled' => false]);
+                $engine = new PhugEngine(['cache_enabled' => false]);
                 $engine->share('pug_flash', function () {
                     return Flash::readAll();
                 });

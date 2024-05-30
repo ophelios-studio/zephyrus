@@ -8,7 +8,7 @@ use Phug\RendererException;
 use Zephyrus\Application\Configuration;
 use Zephyrus\Utilities\FileSystem\Directory;
 
-class PugEngine
+class PhugEngine implements RenderEngine
 {
     public const DEFAULT_CONFIGURATIONS = [
         'cache_enabled' => true, // Enable the cache feature
@@ -57,11 +57,11 @@ class PugEngine
      * Prepares a PugView instance from this engine (will include the shared variables and other settings).
      *
      * @param string $page
-     * @return PugView
+     * @return PhugView
      */
-    public function buildView(string $page): PugView
+    public function buildView(string $page): PhugView
     {
-        return new PugView($page, $this);
+        return new PhugView($page, $this);
     }
 
     /**

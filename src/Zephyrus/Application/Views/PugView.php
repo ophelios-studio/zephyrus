@@ -8,12 +8,12 @@ use Zephyrus\Network\Response;
 
 class PugView extends View
 {
-    private PugEngine $engine;
+    private RenderEngine $engine;
 
-    public function __construct(string $pageToRender, ?PugEngine $engine = null)
+    public function __construct(string $pageToRender, ?RenderEngine $engine = null)
     {
         parent::__construct($pageToRender);
-        $this->engine = $engine ?? new PugEngine();
+        $this->engine = $engine ?? new PhugEngine();
     }
 
     public function render(array $args = []): Response
