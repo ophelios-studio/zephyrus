@@ -57,11 +57,11 @@ class PhugEngine implements RenderEngine
      * Prepares a PugView instance from this engine (will include the shared variables and other settings).
      *
      * @param string $page
-     * @return PhugView
+     * @return PugView
      */
-    public function buildView(string $page): PhugView
+    public function buildView(string $page): PugView
     {
-        return new PhugView($page, $this);
+        return new PugView($page, $this);
     }
 
     /**
