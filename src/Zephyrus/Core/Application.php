@@ -28,13 +28,13 @@ use Zephyrus\Utilities\FileSystem\Directory;
 
 class Application
 {
-    private static ?Application $instance = null;
+    protected static ?Application $instance = null;
 
-    private Request $request;
-    private ?RenderEngine $renderEngine = null;
-    private ?Session $session = null;
-    private ?Localization $localization = null;
-    private array $supportedLanguages = [];
+    protected Request $request;
+    protected ?RenderEngine $renderEngine = null;
+    protected ?Session $session = null;
+    protected ?Localization $localization = null;
+    protected array $supportedLanguages = [];
 
     public static function initiate(Request $request): Router
     {
