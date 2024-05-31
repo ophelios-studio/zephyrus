@@ -5,6 +5,7 @@ use stdClass;
 use Zephyrus\Application\Bootstrap;
 use Zephyrus\Application\Configuration;
 use Zephyrus\Application\Localization;
+use Zephyrus\Application\LocalizationConfiguration;
 use Zephyrus\Application\Views\PhugEngine;
 use Zephyrus\Application\Views\RenderEngine;
 use Zephyrus\Exceptions\LocalizationException;
@@ -156,7 +157,8 @@ class Application
     protected function initializeLocalization(): void
     {
         try {
-            $this->localization = new Localization(Configuration::getLocale());
+            $configuration = new LocalizationConfiguration(Configuration::getLocale());
+            $this->localization = new Localization($configuration);
             $this->localization->start();
         } catch (LocalizationException $e) {
             // If engine cannot properly start an exception will be thrown and must be corrected
