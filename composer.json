@@ -30,8 +30,7 @@
     "ext-apcu": "*"
   },
   "require-dev": {
-    "phpunit/phpunit": "10.*",
-    "ext-xdebug": "*"
+    "phpunit/phpunit": "10.*"
   },
   "autoload": {
     "psr-4": {
