@@ -3,7 +3,7 @@
 use Zephyrus\Application\Configuration;
 use Zephyrus\Application\Feedback;
 use Zephyrus\Application\Form;
-use Zephyrus\Application\Localization;
+use Zephyrus\Core\Application;
 use Zephyrus\Core\Session;
 use Zephyrus\Security\ContentSecurityPolicy;
 use Zephyrus\Utilities\StringUtility;
@@ -126,7 +126,7 @@ function nonce(): string
  */
 function localize(string $key, ...$args): string
 {
-    return Localization::getInstance()->localize($key, $args);
+    return Application::getInstance()->getLocalization()->localize($key, $args);
 }
 
 /**
