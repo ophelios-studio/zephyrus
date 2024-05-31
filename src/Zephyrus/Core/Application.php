@@ -173,7 +173,7 @@ class Application
         require_once(Bootstrap::getHelperFunctionsPath());
     }
 
-    private function initializeRouter(): Router
+    protected function initializeRouter(): Router
     {
         $rootControllerPath = ROOT_DIR . '/app/Controllers';
         $routeRepository = new RouteRepository();
