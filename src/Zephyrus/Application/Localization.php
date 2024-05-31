@@ -4,11 +4,10 @@ use Locale;
 use stdClass;
 use Zephyrus\Exceptions\LocalizationException;
 use Zephyrus\Utilities\FileSystem\Directory;
-use Zephyrus\Utilities\FileSystem\File;
 
 class Localization
 {
-    private static ?Localization $instance = null;
+    private LocalizationConfiguration $configuration;
 
     /**
      * Currently loaded application locale language. Maps to a directory within /locale.
@@ -39,12 +38,25 @@ class Localization
      */
     private array $cachedLocalizations = [];
 
-    public static function getInstance(): self
+    /**
+     * Converts the 2 letters country code into the corresponding flag emoji.
+     *
+     * @param string $countryCode
+     * @return string
+     */
+    public static function getFlagEmoji(string $countryCode): string
     {
-        if (is_null(self::$instance)) {
-            self::$instance = new self();
-        }
-        return self::$instance;
+        $codePoints = array_map(function ($char) {
+            return 127397 + ord($char);
+        }, str_split(strtoupper($countryCode)));
+        return mb_convert_encoding('&#' . implode(';&#', $codePoints) . ';', 'UTF-8', 'HTML-ENTITIES');
+    }
+
+    public function __construct(LocalizationConfiguration $configuration)
+    {
+        $this->configuration = $configuration;
+        $this->buildInstalledLanguages();
+        $this->buildInstalledLocales();
     }
 
     /**
@@ -82,31 +94,39 @@ class Localization
     }
 
     /**
-     * Initialize the localization environment. If no locale is given, it will be initialized with the default locale
-     * set in the config.ini file.
+     * Initialize the localization environment based on the given configurations.
      *
-     * @param string|null $locale
      * @throws LocalizationException
      */
-    public function start(?string $locale = null): void
+    public function start(): void
     {
-        $this->appLocale = $locale ?? Configuration::getLocale('language');
         $this->initializeLocale();
         $this->generate();
     }
 
     /**
-     * @param string $locale
+     * @param LocalizationConfiguration $configuration
      * @throws LocalizationException
      */
-    public function changeLanguage(string $locale): void
+    public function changeLanguage(LocalizationConfiguration $configuration): void
     {
-        $this->start($locale);
+        $this->configuration = $configuration;
+        $this->start();
     }
 
     public function getLoadedLocale(): string
     {
         return $this->appLocale;
+    }
+
+    public function getRegion(?string $locale = null): string
+    {
+        return locale_get_display_region($locale ?? $this->appLocale);
+    }
+
+    public function getLanguage(?string $locale = null): string
+    {
+        return locale_get_display_language($locale ?? $this->appLocale);
     }
 
     /**
@@ -302,14 +322,15 @@ class Localization
 
     private function initializeLocale(): void
     {
-        $charset = Configuration::getLocale('charset');
+        $this->appLocale = $this->configuration->getLocale();
+        $charset = $this->configuration->getCharset();
         $locale = $this->appLocale . '.' . $charset;
         Locale::setDefault($this->appLocale);
         setlocale(LC_MESSAGES, $locale);
         setlocale(LC_TIME, $locale);
         setlocale(LC_CTYPE, $locale);
         putenv("LANG=" . $this->appLocale);
-        date_default_timezone_set(Configuration::getLocale('timezone'));
+        date_default_timezone_set($this->configuration->getTimezone());
     }
 
     private function initializeCache(): void
@@ -317,26 +338,6 @@ class Localization
         foreach ($this->installedLocales as $locale) {
             $this->cachedLocalizations[$locale] = require ROOT_DIR . "/locale/cache/$locale/generated.php";
         }
-    }
-
-    private function __construct()
-    {
-        $this->buildInstalledLanguages();
-        $this->buildInstalledLocales();
-    }
-
-    /**
-     * Converts the 2 letters country code into the corresponding flag emoji.
-     *
-     * @param string $countryCode
-     * @return string
-     */
-    private function getFlagEmoji(string $countryCode): string
-    {
-        $codePoints = array_map(function ($char) {
-            return 127397 + ord($char);
-        }, str_split(strtoupper($countryCode)));
-        return mb_convert_encoding('&#' . implode(';&#', $codePoints) . ';', 'UTF-8', 'HTML-ENTITIES');
     }
 
     private function buildInstalledLocales(): void
@@ -367,9 +368,9 @@ class Localization
             'locale' => $locale,
             'lang_code' => $parts[0],
             'country_code' => $parts[1],
-            'flag_emoji' => $this->getFlagEmoji($parts[1]),
-            'country' => locale_get_display_region($locale),
-            'lang' => locale_get_display_language($locale)
+            'flag_emoji' => self::getFlagEmoji($parts[1]),
+            'country' => $this->getRegion($locale),
+            'lang' => $this->getLanguage($locale)
         ];
     }
 }
