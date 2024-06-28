@@ -42,9 +42,21 @@ class Configuration
         return ($property) ? $configs[$property] ?? $defaultValue : $configs;
     }
 
+    public static function getRender(?string $property = null, mixed $defaultValue = null): mixed
+    {
+        $configs = self::read('render');
+        return ($property) ? $configs[$property] ?? $defaultValue : $configs;
+    }
+
     public static function getLocale(?string $property = null, mixed $defaultValue = null): mixed
     {
         $configs = self::read('locale');
+        return ($property) ? $configs[$property] ?? $defaultValue : $configs;
+    }
+
+    public static function getMailer(?string $property = null, mixed $defaultValue = null): mixed
+    {
+        $configs = self::read('mailer');
         return ($property) ? $configs[$property] ?? $defaultValue : $configs;
     }
 
