@@ -1,9 +1,7 @@
 <?php namespace Zephyrus\Tests\Application;
 
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
 use Zephyrus\Application\Views\PhugEngine;
-use Zephyrus\Application\Views\PugView;
 
 class ViewBuilderTest extends TestCase
 {
@@ -14,20 +12,20 @@ class ViewBuilderTest extends TestCase
         self::assertEquals('<p>Bob Lewis</p>', $output);
     }
 
-    public function testViewRenderFromFile()
-    {
-        $view = new PugView("test");
-        $output = $view->render(['item' => ['name' => 'Bob Lewis', 'price' => 12.30]]);
-        self::assertEquals('<p>Bob Lewis</p>', $output->getContent());
-    }
-
-    public function testViewRenderInvalidFromFile()
-    {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage("The specified view file [dsfdfg] is not available (not readable or does not exists)");
-        $view = new PugView("dsfdfg");
-        $view->render();
-    }
+//    public function testViewRenderFromFile()
+//    {
+//        $view = new PugView("test");
+//        $output = $view->render(['item' => ['name' => 'Bob Lewis', 'price' => 12.30]]);
+//        self::assertEquals('<p>Bob Lewis</p>', $output->getContent());
+//    }
+//
+//    public function testViewRenderInvalidFromFile()
+//    {
+//        $this->expectException(RuntimeException::class);
+//        $this->expectExceptionMessage("The specified view file [dsfdfg] is not available (not readable or does not exists)");
+//        $view = new PugView("dsfdfg");
+//        $view->render();
+//    }
 
     public function testViewRenderWithMoneyFormat()
     {

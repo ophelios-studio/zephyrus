@@ -1,18 +1,18 @@
 <?php namespace Zephyrus\Network\Response;
 
-use Zephyrus\Application\Views\PhpView;
-use Zephyrus\Application\Views\PhugEngine;
-use Zephyrus\Application\Views\RenderEngine;
+use Zephyrus\Application\Feedback;
+use Zephyrus\Application\Flash;
+use Zephyrus\Application\Form;
+use Zephyrus\Application\Views\PhpEngine;
+use Zephyrus\Core\Application;
 use Zephyrus\Network\ContentType;
 use Zephyrus\Network\Response;
 
 trait RenderResponses
 {
-    private ?RenderEngine $renderEngine = null;
-
     /**
-     * Renders the specified view with corresponding arguments using the configured rendering engine. By default, the
-     * PugEngine is built if none specific is given.
+     * Renders the specified view with corresponding arguments using the configured rendering engine (from the
+     * Application instance. By default, the LatteEngine is used.
      *
      * @param string $page
      * @param array $args
@@ -20,10 +20,16 @@ trait RenderResponses
      */
     public function render(string $page, array $args = []): Response
     {
-        if (is_null($this->renderEngine)) {
-            $this->renderEngine = new PhugEngine();
-        }
-        return $this->renderEngine->buildView($page)->render($args);
+        $engine = Application::getInstance()->getRenderEngine();
+        ob_start();
+        $engine->renderFromFile($page, $args);
+        $output = ob_get_clean();
+        Form::removeMemorizedValue();
+        Flash::clearAll();
+        Feedback::clear();
+        $response = new Response(ContentType::HTML, 200);
+        $response->setContent($output);
+        return $response;
     }
 
     /**
@@ -35,8 +41,15 @@ trait RenderResponses
      */
     public function renderPhp(string $page, array $args = []): Response
     {
-        $view = new PhpView($page);
-        return $view->render($args);
+        ob_start();
+        (new PhpEngine())->renderFromFile($page, $args);
+        $output = ob_get_clean();
+        Form::removeMemorizedValue();
+        Flash::clearAll();
+        Feedback::clear();
+        $response = new Response(ContentType::HTML, 200);
+        $response->setContent($output);
+        return $response;
     }
 
     /**
@@ -50,16 +63,5 @@ trait RenderResponses
         $response = new Response(ContentType::HTML, 200);
         $response->setContent($data);
         return $response;
-    }
-
-    /**
-     * Applies the rendering engine that should be used when calling the "render" method. As of now, only Pug is
-     * supported.
-     *
-     * @param RenderEngine $engine
-     */
-    public function setRenderEngine(RenderEngine $engine): void
-    {
-        $this->renderEngine = $engine;
     }
 }

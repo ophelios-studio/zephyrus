@@ -4,12 +4,13 @@ use JsPhpize\JsPhpizePhug;
 use Phug\Optimizer;
 use Phug\Phug;
 use Phug\PhugException;
-use Phug\RendererException;
+use RuntimeException;
 use Zephyrus\Application\Configuration;
 use Zephyrus\Utilities\FileSystem\Directory;
 
 class PhugEngine implements RenderEngine
 {
+    public const NAME = "phug";
     public const DEFAULT_CONFIGURATIONS = [
         'cache_enabled' => true, // Enable the cache feature
         'cache_directory' => ROOT_DIR . "/cache/pug", // Cache directory for generated files
@@ -53,37 +54,22 @@ class PhugEngine implements RenderEngine
         $this->initializeDefaultSharedVariables();
     }
 
-    /**
-     * Prepares a PugView instance from this engine (will include the shared variables and other settings).
-     *
-     * @param string $page
-     * @return PugView
-     */
-    public function buildView(string $page): PugView
-    {
-        return new PugView($page, $this);
-    }
-
-    /**
-     * @throws RendererException
-     */
-    public function cache(): array
-    {
-        return Phug::cacheDirectory(ROOT_DIR . '/app/Views', $this->options['cache_dir'], $this->options);
-    }
-
     public function renderFromString(string $pugCode, array $args = []): string
     {
         return Phug::render($pugCode, $args, $this->options);
     }
 
-    public function renderFromFile(string $path, array $args = []): void
+    public function renderFromFile(string $page, array $args = []): void
     {
+        $realPath = realpath(ROOT_DIR . '/app/Views/' . $page . '.pug');
+        if (file_exists($realPath) && is_readable($realPath)) {
+            throw new RuntimeException("The specified view file [$page] is not available (not readable or does not exists)");
+        }
         if ($this->optimizerEnabled) {
-            Optimizer::call('displayFile', [$path, $args], $this->options);
+            Optimizer::call('displayFile', [$realPath, $args], $this->options);
             return;
         }
-        Phug::displayFile($path, $args, $this->options);
+        Phug::displayFile($realPath, $args, $this->options);
     }
 
     /**

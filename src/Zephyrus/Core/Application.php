@@ -6,12 +6,15 @@ use Zephyrus\Application\Bootstrap;
 use Zephyrus\Application\Configuration;
 use Zephyrus\Application\Localization;
 use Zephyrus\Application\LocalizationConfiguration;
+use Zephyrus\Application\Views\LatteEngine;
+use Zephyrus\Application\Views\PhpEngine;
 use Zephyrus\Application\Views\PhugEngine;
 use Zephyrus\Application\Views\RenderEngine;
 use Zephyrus\Exceptions\LocalizationException;
 use Zephyrus\Exceptions\Session\SessionDatabaseStructureException;
 use Zephyrus\Exceptions\Session\SessionDatabaseTableException;
 use Zephyrus\Exceptions\Session\SessionDisabledException;
+use Zephyrus\Exceptions\Session\SessionException;
 use Zephyrus\Exceptions\Session\SessionFingerprintException;
 use Zephyrus\Exceptions\Session\SessionHttpOnlyCookieException;
 use Zephyrus\Exceptions\Session\SessionLifetimeException;
@@ -37,6 +40,9 @@ class Application
     protected ?Localization $localization = null;
     protected array $supportedLanguages = [];
 
+    /**
+     * @throws SessionException
+     */
     public static function initiate(Request $request): Router
     {
         self::$instance = new self();
@@ -56,8 +62,8 @@ class Application
     }
 
     /**
-     * Retrieves the loaded PugEngine (used for rendering Pug files). Proceeds with an initialization if the engine was
-     * not yet initiated (useful to avoid unnecessary class instanciations).
+     * Retrieves the loaded RenderEngine (used for rendering HTML). Proceeds with an initialization if the engine was
+     * not yet initiated (default to Latte).
      *
      * @return RenderEngine
      */
@@ -67,6 +73,16 @@ class Application
             $this->initializeRenderEngine();
         }
         return $this->renderEngine;
+    }
+
+    /**
+     * Allows to set a custom RenderEngine class which is not yet supported by Zephyrus (e.g. Blade template engine).
+     *
+     * @param RenderEngine $renderEngine
+     */
+    public function setRenderEngine(RenderEngine $renderEngine): void
+    {
+        $this->renderEngine = $renderEngine;
     }
 
     public function getRequest(): Request
@@ -149,11 +165,6 @@ class Application
         $this->session->start();
     }
 
-    protected function initializeRenderEngine(): void
-    {
-        $this->initializePhugEngine();
-    }
-
     protected function initializeLocalization(): void
     {
         try {
@@ -191,8 +202,15 @@ class Application
         return new Router($routeRepository);
     }
 
-    private function initializePhugEngine(): void
+    private function initializeRenderEngine(): void
     {
-        $this->renderEngine = new PhugEngine();
+        $renderEngineName = Configuration::getRender('engine', LatteEngine::NAME);
+        $this->renderEngine = match ($renderEngineName) {
+            LatteEngine::NAME => new LatteEngine(Configuration::getRender()
+                ?? LatteEngine::DEFAULT_CONFIGURATIONS),
+            PhugEngine::NAME => new PhugEngine(Configuration::getRender()
+                ?? PhugEngine::DEFAULT_CONFIGURATIONS),
+            PhpEngine::NAME => new PhpEngine()
+        };
     }
 }
