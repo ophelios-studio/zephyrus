@@ -62,7 +62,7 @@ class PhugEngine implements RenderEngine
     public function renderFromFile(string $page, array $args = []): void
     {
         $realPath = realpath(ROOT_DIR . '/app/Views/' . $page . '.pug');
-        if (file_exists($realPath) && is_readable($realPath)) {
+        if (!file_exists($realPath) || !is_readable($realPath)) {
             throw new RuntimeException("The specified view file [$page] is not available (not readable or does not exists)");
         }
         if ($this->optimizerEnabled) {
