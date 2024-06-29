@@ -3,12 +3,16 @@
 class LocalizationConfiguration
 {
     public const DEFAULT_CONFIGURATIONS = [
+        'path' => ROOT_DIR . '/locale', // Path to locales
+        'cache' => ROOT_DIR . '/cache/locale', // Path to cache root
         'locale' => 'fr_CA', // Default language
         'charset' => 'utf8', // Default charset
         'timezone' => 'America/Montreal' // Default timezone
     ];
 
     private array $configurations;
+    private string $path;
+    private string $cache;
     private string $locale;
     private string $charset;
     private string $timezone;
@@ -16,6 +20,8 @@ class LocalizationConfiguration
     public function __construct(array $configurations = self::DEFAULT_CONFIGURATIONS)
     {
         $this->initializeConfigurations($configurations);
+        $this->initializePath();
+        $this->initializeCache();
         $this->initializeLocale();
         $this->initializeCharset();
         $this->initializeTimezone();
@@ -29,6 +35,16 @@ class LocalizationConfiguration
     public function getCharset(): string
     {
         return $this->charset;
+    }
+
+    public function getPath(): string
+    {
+        return $this->path;
+    }
+
+    public function getCachePath(): string
+    {
+        return $this->cache;
     }
 
     public function getTimezone(): string
@@ -45,6 +61,18 @@ class LocalizationConfiguration
     {
         $this->locale = $this->configurations['locale']
             ?? self::DEFAULT_CONFIGURATIONS['locale'];
+    }
+
+    private function initializePath(): void
+    {
+        $this->path = $this->configurations['path']
+            ?? self::DEFAULT_CONFIGURATIONS['path'];
+    }
+
+    private function initializeCache(): void
+    {
+        $this->cache = $this->configurations['cache']
+            ?? self::DEFAULT_CONFIGURATIONS['cache'];
     }
 
     private function initializeCharset(): void

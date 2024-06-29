@@ -224,7 +224,8 @@ class Localization
      */
     public function clearCache(?string $locale = null): void
     {
-        $path = ($locale) ? ROOT_DIR . "/locale/cache/$locale" : "/locale/cache";
+        $cachePath = $this->configuration->getCachePath();
+        $path = ($locale) ? $cachePath . "/$locale" : $cachePath;
         if (Directory::exists($path)) {
             (new Directory($path))->remove();
         }
@@ -239,9 +240,10 @@ class Localization
      */
     private function generateCache(string $locale): void
     {
+        $cachePath = $this->configuration->getCachePath();
         $globalArray = $this->buildGlobalArrayFromJsonFiles($locale);
         $arrayCode = '<?php' . PHP_EOL . '$localizeCache = ' . var_export($globalArray, true) . ';' . PHP_EOL . 'return $localizeCache;' . PHP_EOL;
-        file_put_contents(ROOT_DIR . "/locale/cache/$locale/generated.php", $arrayCode);
+        file_put_contents($cachePath . "/$locale/generated.php", $arrayCode);
     }
 
     /**
@@ -252,8 +254,10 @@ class Localization
      */
     private function isCacheOutdated(string $locale): bool
     {
-        $lastModifiedLocaleJson = $this->getDirectoryLastModifiedTime(ROOT_DIR . "/locale/$locale");
-        $lastModifiedLocaleCache = $this->getDirectoryLastModifiedTime(ROOT_DIR . "/locale/cache/$locale");
+        $rootPath = $this->configuration->getPath();
+        $cachePath = $this->configuration->getCachePath();
+        $lastModifiedLocaleJson = $this->getDirectoryLastModifiedTime($rootPath . "/$locale");
+        $lastModifiedLocaleCache = $this->getDirectoryLastModifiedTime($cachePath . "/$locale");
         return $lastModifiedLocaleJson > $lastModifiedLocaleCache;
     }
 
@@ -267,12 +271,13 @@ class Localization
     private function prepareCache(string $locale): bool
     {
         $newlyCreated = false;
-        if (!Directory::exists(ROOT_DIR . "/locale/cache")) {
-            Directory::create(ROOT_DIR . "/locale/cache");
+        $cachePath = $this->configuration->getCachePath();
+        if (!Directory::exists($cachePath)) {
+            Directory::create($cachePath);
             $newlyCreated = true;
         }
 
-        $path = ROOT_DIR . "/locale/cache/$locale";
+        $path = $cachePath . "/$locale";
         if (!Directory::exists($path)) {
             Directory::create($path);
             $newlyCreated = true;
@@ -290,7 +295,7 @@ class Localization
     private function buildGlobalArrayFromJsonFiles(string $locale): array
     {
         $globalArray = [];
-        foreach (Directory::recursiveGlob(ROOT_DIR . "/locale/$locale/*.json") as $file) {
+        foreach (Directory::recursiveGlob($this->configuration->getPath() . "/$locale/*.json") as $file) {
             $string = file_get_contents($file);
             $jsonAssociativeArray = json_decode($string, true);
             $jsonLastError = json_last_error();
@@ -335,8 +340,9 @@ class Localization
 
     private function initializeCache(): void
     {
+        $cachePath = $this->configuration->getCachePath();
         foreach ($this->installedLocales as $locale) {
-            $this->cachedLocalizations[$locale] = require ROOT_DIR . "/locale/cache/$locale/generated.php";
+            $this->cachedLocalizations[$locale] = require "$cachePath/$locale/generated.php";
         }
     }
 
@@ -347,7 +353,8 @@ class Localization
 
     private function buildInstalledLanguages(): void
     {
-        $dirs = array_filter(glob(ROOT_DIR . '/locale/*'), 'is_dir');
+        $rootPath = $this->configuration->getPath();
+        $dirs = array_filter(glob($rootPath . '/*'), 'is_dir');
         array_walk($dirs, function (&$value) {
             $value = basename($value);
         });
