@@ -47,6 +47,7 @@ class Application
     {
         self::$instance = new self();
         self::$instance->request = $request;
+        self::$instance->initializeNativeHelpers();
         self::$instance->initializeSession();
         self::$instance->initializeLocalization();
         return self::$instance->initializeRouter();
@@ -176,6 +177,11 @@ class Application
             // messages should be explicit enough.
             die($e->getMessage());
         }
+    }
+
+    protected function initializeNativeHelpers(): void
+    {
+        require_once(Bootstrap::getHelperFunctionsPath());
     }
 
     protected function initializeRouter(): Router
