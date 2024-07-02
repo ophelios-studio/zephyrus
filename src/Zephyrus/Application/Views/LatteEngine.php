@@ -1,6 +1,7 @@
 <?php namespace Zephyrus\Application\Views;
 
 use Latte\Engine;
+use Latte\Extension;
 use RuntimeException;
 use Zephyrus\Application\Configuration;
 use Zephyrus\Utilities\FileSystem\Directory;
@@ -41,6 +42,11 @@ class LatteEngine implements RenderEngine
             throw new RuntimeException("The specified view file [$page] is not available (not readable or does not exists)");
         }
         $this->engine->render($realPath, $args);
+    }
+
+    public function addExtension(Extension $extension): void
+    {
+        $this->engine->addExtension($extension);
     }
 
     private function initializeConfigurations(array $configurations): void
