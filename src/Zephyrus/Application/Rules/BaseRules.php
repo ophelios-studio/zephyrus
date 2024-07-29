@@ -134,4 +134,32 @@ trait BaseRules
             return Validation::isOnlyWithin($data, $possibleValues);
         }, $errorMessage, "onlyWithin");
     }
+
+    public static function lowerThan(float|int $threshold, string $errorMessage): Rule
+    {
+        return new Rule(function ($value) use ($threshold) {
+            return $value < $threshold;
+        }, $errorMessage, "lowerThan");
+    }
+
+    public static function lowerEqualsThan(float|int $threshold, string $errorMessage): Rule
+    {
+        return new Rule(function ($value) use ($threshold) {
+            return $value <= $threshold;
+        }, $errorMessage, "lowerEqualsThan");
+    }
+
+    public static function greaterThan(float|int $threshold, string $errorMessage): Rule
+    {
+        return new Rule(function ($value) use ($threshold) {
+            return $value > $threshold;
+        }, $errorMessage, "greaterThan");
+    }
+
+    public static function greaterEqualsThan(float|int $threshold, string $errorMessage): Rule
+    {
+        return new Rule(function ($value) use ($threshold) {
+            return $value >= $threshold;
+        }, $errorMessage, "greaterEqualsThan");
+    }
 }
