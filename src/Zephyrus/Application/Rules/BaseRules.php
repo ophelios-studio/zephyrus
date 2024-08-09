@@ -95,6 +95,13 @@ trait BaseRules
         }, $errorMessage, 'array');
     }
 
+    public static function arraySize(int $expectedSize, string $errorMessage = ""): Rule
+    {
+        return new Rule(function ($data) use ($expectedSize) {
+            return count($data) == $expectedSize;
+        }, $errorMessage, 'arraySize');
+    }
+
     public static function object(string $errorMessage = ""): Rule
     {
         return new Rule(function ($data) {

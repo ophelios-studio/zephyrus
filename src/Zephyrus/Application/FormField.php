@@ -70,6 +70,10 @@ class FormField
     {
         $this->name = $name;
         $this->value = $value;
+        if (is_array($value)) {
+            // Do not remove the entire array from memory
+            $this->keepOnError = true;
+        }
     }
 
     /**
