@@ -204,11 +204,13 @@ class Form
     }
 
     /**
-     * Retrieves a simple array containing only the error messages (without field indications).
+     * Retrieves a simple array containing only the error messages (without field indications). If the $unique argument
+     * is true, it will filter the result to eliminate duplicate strings.
      *
+     * @param bool $unique
      * @return array
      */
-    public function getErrorMessages(): array
+    public function getErrorMessages(bool $unique = true): array
     {
         $messages = [];
         foreach ($this->errors as $errors) {
@@ -216,7 +218,7 @@ class Form
                 $messages[] = $errorMessage;
             }
         }
-        return $messages;
+        return $unique ? array_unique($messages) : $messages;
     }
 
     /**
