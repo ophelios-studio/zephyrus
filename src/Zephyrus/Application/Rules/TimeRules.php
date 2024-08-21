@@ -45,11 +45,25 @@ trait TimeRules
         }, $errorMessage, 'dateBefore');
     }
 
+    public static function dateEqualsBefore(string $referenceDate, string $errorMessage = ""): Rule
+    {
+        return new Rule(function ($data) use ($referenceDate) {
+            return Validation::isDateEqualsBefore($data, $referenceDate);
+        }, $errorMessage, 'dateEqualsBefore');
+    }
+
     public static function dateAfter(string $referenceDate, string $errorMessage = ""): Rule
     {
         return new Rule(function ($data) use ($referenceDate) {
             return Validation::isDateAfter($data, $referenceDate);
         }, $errorMessage, 'dateAfter');
+    }
+
+    public static function dateEqualsAfter(string $referenceDate, string $errorMessage = ""): Rule
+    {
+        return new Rule(function ($data) use ($referenceDate) {
+            return Validation::isDateEqualsAfter($data, $referenceDate);
+        }, $errorMessage, 'dateEqualsAfter');
     }
 
     public static function dateBetween(string $referenceDateBegin, string $referenceDateEnd, string $errorMessage = ""): Rule

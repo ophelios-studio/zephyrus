@@ -60,12 +60,28 @@ trait TimeValidations
         return $data < $referenceDate;
     }
 
+    public static function isDateEqualsBefore($data, $referenceDate): bool
+    {
+        if (empty($data) || !self::isDate($referenceDate)) {
+            return false;
+        }
+        return $data <= $referenceDate;
+    }
+
     public static function isDateAfter($data, $referenceDate): bool
     {
         if (empty($data) || !self::isDate($referenceDate)) {
             return false;
         }
         return $data > $referenceDate;
+    }
+
+    public static function isDateEqualsAfter($data, $referenceDate): bool
+    {
+        if (empty($data) || !self::isDate($referenceDate)) {
+            return false;
+        }
+        return $data >= $referenceDate;
     }
 
     public static function isDateBetween($data, $referenceDateBegin, $referenceDateEnd): bool
