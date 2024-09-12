@@ -4,6 +4,7 @@ use Locale;
 use stdClass;
 use Zephyrus\Exceptions\LocalizationException;
 use Zephyrus\Utilities\FileSystem\Directory;
+use Zephyrus\Utilities\Formatter;
 
 class Localization
 {
@@ -142,6 +143,7 @@ class Localization
 
     public function localize(string $key, array $args = []): string
     {
+        // Extract locale to use
         $locale = $this->appLocale;
         $segments = explode(".", $key);
         $localizeIdentifier = $segments[0];
@@ -150,27 +152,29 @@ class Localization
             array_shift($segments);
         }
 
+        // Find raw localize string
         $keys = $this->cachedLocalizations[$locale] ?? [];
         $result = null;
         foreach ($segments as $segment) {
             if (is_array($result)) {
                 if (isset($result[$segment])) {
-                    $result = $result['!' . $segment] ?? $result[$segment];
+                    $result = $result[$segment];
                 } else {
                     $result = null;
                     break;
                 }
             } else {
                 if (isset($keys[$segment])) {
-                    $result = $keys['!' . $segment] ?? $keys[$segment];
+                    $result = $keys[$segment];
                 } else {
                     $result = null;
                     break;
                 }
             }
         }
-
         $resultString = (is_null($result) || is_array($result)) ? $key : $result;
+
+        // Extraction of sprintf arguments (%s) and named arguments ({var})
         $sprintfParameters = [];
         $namedParameters = [];
         foreach ($args as $index => $arg) {
@@ -190,12 +194,30 @@ class Localization
             }
         }
 
-        foreach ($namedParameters as $index => $arg) {
-            $resultString = str_replace('{' . $index . '}', $arg ?? "", $resultString);
+        // Replace named arguments including format ({amount:money})
+        if ($namedParameters) {
+            $values = $this->extractCurlyBracesValues($resultString);
+            $replaces = [];
+            foreach ($values as $value) {
+                $argumentName = $value;
+                $argumentFormat = null;
+                if (str_contains($value, ':')) {
+                    list($argumentName, $argumentFormat) = explode(":", $value);
+                }
+                $replaces['{' . $value . '}'] = ($argumentFormat)
+                    ? self::format($argumentFormat, $namedParameters[$argumentName])
+                    : $namedParameters[$argumentName];
+            }
+            $resultString = strtr($resultString, $replaces);
         }
 
-        $parameters[] = $resultString;
-        return call_user_func_array('sprintf', array_merge($parameters, $sprintfParameters));
+        // Replace sprintf arguments (%s)
+        if ($sprintfParameters) {
+            $parameters[] = $resultString;
+            $resultString = call_user_func_array('sprintf', array_merge($parameters, $sprintfParameters));
+        }
+
+        return $resultString;
     }
 
     /**
@@ -379,5 +401,26 @@ class Localization
             'country' => $this->getRegion($locale),
             'lang' => $this->getLanguage($locale)
         ];
+    }
+
+    private function extractCurlyBracesValues(string $inputString) {
+        $pattern = '/\{(.*?)\}/';
+        $matches = [];
+        preg_match_all($pattern, $inputString, $matches);
+        return $matches[1];
+    }
+
+    private function format(string $type, mixed $value): string
+    {
+        return match ($type) {
+            "money" => Formatter::money($value),
+            "date" => Formatter::date($value),
+            "time" => Formatter::time($value),
+            "filesize" => Formatter::filesize($value),
+            "datetime" => Formatter::dateTime($value),
+            "decimal" => Formatter::decimal($value),
+            "percent" => Formatter::percent($value),
+            default => $value
+        };
     }
 }
