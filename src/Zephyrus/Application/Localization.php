@@ -177,7 +177,11 @@ class Localization
         // Extraction of sprintf arguments (%s) and named arguments ({var})
         $sprintfParameters = [];
         $namedParameters = [];
+
         foreach ($args as $index => $arg) {
+            if (is_object($arg)) {
+                $arg = get_object_vars($arg);
+            }
             if (is_array($arg)) { // When used from localize function, it will be an array
                 foreach ($arg as $innerIndex => $innerArg) {
                     if (is_string($innerIndex)) {
