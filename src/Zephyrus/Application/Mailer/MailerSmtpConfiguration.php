@@ -95,7 +95,7 @@ class MailerSmtpConfiguration
     private function initializeEnabled(): void
     {
         $this->enabled = (bool) ((isset($this->configurations['enabled']))
-            ? $this->configurations['enabled']
+            ? filter_var($this->configurations['enabled'], FILTER_VALIDATE_BOOLEAN)
             : self::DEFAULT_CONFIGURATIONS['enabled']);
     }
 
@@ -139,7 +139,7 @@ class MailerSmtpConfiguration
     private function initializeDebug(): void
     {
         $this->debug = (bool) ((isset($this->configurations['debug']))
-            ? $this->configurations['debug']
+            ? filter_var($this->configurations['debug'], FILTER_VALIDATE_BOOLEAN)
             : self::DEFAULT_CONFIGURATIONS['debug']);
     }
 
@@ -148,13 +148,13 @@ class MailerSmtpConfiguration
         $this->sslOptions = [
             'ssl' => [
                 'verify_peer' => (bool) ((isset($this->configurations['verify_peer']))
-                    ? $this->configurations['verify_peer']
+                    ? filter_var($this->configurations['verify_peer'], FILTER_VALIDATE_BOOLEAN)
                     : self::DEFAULT_CONFIGURATIONS['verify_peer']),
                 'verify_peer_name' => (bool) ((isset($this->configurations['verify_peer']))
-                    ? $this->configurations['verify_peer']
+                    ? filter_var($this->configurations['verify_peer'], FILTER_VALIDATE_BOOLEAN)
                     : self::DEFAULT_CONFIGURATIONS['verify_peer']),
                 'allow_self_signed' => (bool) ((isset($this->configurations['allow_self_signed']))
-                    ? $this->configurations['allow_self_signed']
+                    ? filter_var($this->configurations['allow_self_signed'], FILTER_VALIDATE_BOOLEAN)
                     : self::DEFAULT_CONFIGURATIONS['allow_self_signed']),
             ]
         ];
