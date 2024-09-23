@@ -2,7 +2,6 @@
 
 use RuntimeException;
 use Zephyrus\Application\Configuration;
-use Zephyrus\Core\Application;
 use Zephyrus\Database\Core\Database;
 use Zephyrus\Exceptions\FatalDatabaseException;
 
@@ -40,8 +39,12 @@ class DatabaseSession
     protected function __construct(Database $database)
     {
         $this->database = $database;
-        $this->activateLocale();
         $this->activateSearchPath();
+    }
+
+    protected function activateLocale(): void
+    {
+        $this->database->query("SET lc_time = '" . Configuration::getLocale('language') . ".UTF-8'");
     }
 
     private function activateSearchPath(): void
@@ -52,11 +55,5 @@ class DatabaseSession
         }
         $paths = implode(', ', $searchPaths);
         $this->database->query("SET search_path TO $paths;");
-    }
-
-    private function activateLocale(): void
-    {
-        $locale = Application::getInstance()->getLocalization()->getLocale();
-        $this->database->query("SET lc_time = '$locale.UTF-8'");
     }
 }
