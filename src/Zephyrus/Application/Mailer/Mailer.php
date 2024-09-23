@@ -11,9 +11,15 @@ use Zephyrus\Utilities\FileSystem\File;
 class Mailer
 {
     private PHPMailer $phpMailer;
-    private MailerSmtpConfiguration $smtpConfiguration;
+    private ?MailerSmtpConfiguration $smtpConfiguration;
 
-    public function __construct(MailerSmtpConfiguration $configuration)
+    /**
+     * If no MailerSmtpConfiguration is given, the class will make the raw email response available in send instead
+     * of sending the email through SMTP. Useful for alternate sending method such as AWS, MailGun or SendGrid.
+     *
+     * @param MailerSmtpConfiguration|null $configuration
+     */
+    public function __construct(?MailerSmtpConfiguration $configuration)
     {
         $this->smtpConfiguration = $configuration;
         $this->phpMailer = new PHPMailer(true);
@@ -48,10 +54,9 @@ class Mailer
     public function send(bool $asHtml = true): string
     {
         $this->phpMailer->IsHTML($asHtml);
-
         try {
             $this->phpMailer->preSend();
-            if ($this->smtpConfiguration->isEnabled()) {
+            if ($this->smtpConfiguration) {
                 $this->phpMailer->postSend();
             }
         } catch (Exception $exception) {
@@ -258,7 +263,7 @@ class Mailer
 
     private function initializeSmtp(): void
     {
-        if ($this->smtpConfiguration->isEnabled()) {
+        if ($this->smtpConfiguration) {
             $this->phpMailer->isSMTP();
             $this->phpMailer->Host = $this->smtpConfiguration->getHost();
             $this->phpMailer->Port = $this->smtpConfiguration->getPort();

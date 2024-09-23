@@ -6,7 +6,6 @@ use Zephyrus\Exceptions\Mailer\MailerSmtpPortException;
 class MailerSmtpConfiguration
 {
     public const DEFAULT_CONFIGURATIONS = [
-        'enabled' => false, // Enables the SMTP processing of emails, default to false which makes available the raw message.
         'host' => '', // SMTP server to send through (e.g. smtp.example.com)
         'port' => 465, // TCP port to connect to; use 587 if you have set encryption to 'tls'
         'encryption' => 'ssl', // Encryption algorithm to use (none | ssl | tls)
@@ -18,7 +17,6 @@ class MailerSmtpConfiguration
     ];
 
     private array $configurations;
-    private bool $enabled;
     private string $host;
     private int $port;
     private string $encryption;
@@ -34,17 +32,11 @@ class MailerSmtpConfiguration
     public function __construct(array $configurations = self::DEFAULT_CONFIGURATIONS)
     {
         $this->initializeConfigurations($configurations);
-        $this->initializeEnabled();
         $this->initializeHost();
         $this->initializeAuthentication();
         $this->initializeEncryption();
         $this->initializeDebug();
         $this->initializeSslOptions();
-    }
-
-    public function isEnabled(): bool
-    {
-        return $this->enabled;
     }
 
     public function hasAuthentication(): bool
@@ -90,13 +82,6 @@ class MailerSmtpConfiguration
     private function initializeConfigurations(array $configurations): void
     {
         $this->configurations = $configurations;
-    }
-
-    private function initializeEnabled(): void
-    {
-        $this->enabled = (bool) ((isset($this->configurations['enabled']))
-            ? filter_var($this->configurations['enabled'], FILTER_VALIDATE_BOOLEAN)
-            : self::DEFAULT_CONFIGURATIONS['enabled']);
     }
 
     /**
