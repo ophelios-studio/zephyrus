@@ -7,7 +7,8 @@ class LocalizationConfiguration
         'cache' => ROOT_DIR . '/cache/locale', // Path to cache root
         'locale' => 'fr_CA', // Default language
         'charset' => 'utf8', // Default charset
-        'timezone' => 'America/Montreal' // Default timezone
+        'timezone' => 'America/Montreal', // Default timezone
+        'currency' => 'CAD' // Default currency
     ];
 
     private array $configurations;
@@ -16,6 +17,7 @@ class LocalizationConfiguration
     private string $locale;
     private string $charset;
     private string $timezone;
+    private string $currency;
 
     public function __construct(array $configurations = self::DEFAULT_CONFIGURATIONS)
     {
@@ -25,6 +27,7 @@ class LocalizationConfiguration
         $this->initializeLocale();
         $this->initializeCharset();
         $this->initializeTimezone();
+        $this->initializeCurrency();
     }
 
     public function getLocale(): string
@@ -50,6 +53,11 @@ class LocalizationConfiguration
     public function getTimezone(): string
     {
         return $this->timezone;
+    }
+
+    public function getCurrency(): string
+    {
+        return $this->currency;
     }
 
     private function initializeConfigurations(array $configurations): void
@@ -85,5 +93,11 @@ class LocalizationConfiguration
     {
         $this->timezone = $this->configurations['timezone']
             ?? self::DEFAULT_CONFIGURATIONS['timezone'];
+    }
+
+    private function initializeCurrency(): void
+    {
+        $this->currency = $this->configurations['currency']
+            ?? self::DEFAULT_CONFIGURATIONS['currency'];
     }
 }

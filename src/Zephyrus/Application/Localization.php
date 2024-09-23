@@ -115,9 +115,19 @@ class Localization
         $this->start();
     }
 
-    public function getLoadedLocale(): string
+    public function getLocale(): string
     {
         return $this->appLocale;
+    }
+
+    public function getCurrency(): string
+    {
+        return $this->configuration->getCurrency();
+    }
+
+    public function getTimezone(): string
+    {
+        return $this->configuration->getTimezone();
     }
 
     public function getRegion(?string $locale = null): string
