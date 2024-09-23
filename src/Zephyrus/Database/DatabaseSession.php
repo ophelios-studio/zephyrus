@@ -2,6 +2,7 @@
 
 use RuntimeException;
 use Zephyrus\Application\Configuration;
+use Zephyrus\Core\Application;
 use Zephyrus\Database\Core\Database;
 use Zephyrus\Exceptions\FatalDatabaseException;
 
@@ -55,6 +56,7 @@ class DatabaseSession
 
     private function activateLocale(): void
     {
-        $this->database->query("SET lc_time = '" . Configuration::getLocale('language') . ".UTF-8'");
+        $locale = Application::getInstance()->getLocalization()->getLocale();
+        $this->database->query("SET lc_time = '$locale.UTF-8'");
     }
 }
