@@ -42,9 +42,9 @@ class DatabaseSession
         $this->activateSearchPath();
     }
 
-    protected function activateLocale(): void
+    protected function activateLocale(string $locale): void
     {
-        $this->database->query("SET lc_time = '" . Configuration::getLocale('language') . ".UTF-8'");
+        $this->database->query("SET lc_time = '$locale.UTF-8'");
     }
 
     private function activateSearchPath(): void
