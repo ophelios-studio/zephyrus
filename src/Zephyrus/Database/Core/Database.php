@@ -214,7 +214,9 @@ class Database
             return PDO::PARAM_BOOL;
         } elseif (is_null($variable)) {
             return PDO::PARAM_NULL;
-        }
+        }/* elseif (is_string($variable) && $this->isBinary($variable)) {
+            return PDO::PARAM_LOB;
+        }*/
         return PDO::PARAM_STR;
     }
 
@@ -228,5 +230,15 @@ class Database
     public function purify(string $data): string
     {
         return htmlspecialchars(trim($data), ENT_QUOTES | ENT_HTML401);
+    }
+
+    /**
+     * @see https://stackoverflow.com/questions/25343508/detect-if-string-is-binary
+     * @param string $data
+     * @return bool
+     */
+    private function isBinary(string $data): bool
+    {
+        return !mb_check_encoding($data, 'UTF-8');
     }
 }
