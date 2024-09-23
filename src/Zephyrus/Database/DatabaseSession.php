@@ -42,7 +42,18 @@ class DatabaseSession
         $this->activateSearchPath();
     }
 
-    protected function activateLocale(string $locale): void
+    /**
+     * Set the proper locale to use within the Postgres session for date/time formatting. E.g.:
+     *
+     * SET lc_time = 'fr_FR.UTF-8';
+     * SELECT TO_CHAR(CURRENT_DATE, 'Day, DD Month YYYY');
+     *
+     * If the formatting is entirely done by the back end, then no need to use this.
+     *
+     * @param string $locale
+     * @return void
+     */
+    public function activateLocale(string $locale): void
     {
         $this->database->query("SET lc_time = '$locale.UTF-8'");
     }
