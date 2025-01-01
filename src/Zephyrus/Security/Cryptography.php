@@ -153,7 +153,7 @@ class Cryptography
      * @param string|array|null $characters
      * @return string
      */
-    public static function randomString(int $length, string|array $characters = null): string
+    public static function randomString(int $length, string|array|null $characters = null): string
     {
         if (is_null($characters)) {
             $characters = array_merge(range('a', 'z'), range('A', 'Z'), range('0', '9'));
