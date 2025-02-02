@@ -26,7 +26,7 @@ class DatabaseSessionHandler extends SessionHandler
             ? explode('.', $this->table)
             : ['public', $this->table];
         if ($this->database->getSchemaInterrogator()->tableExists($table, $schema)) {
-            $columns = ['session_id', 'access', 'data', 'expire'];
+            $columns = ['id', 'access', 'data', 'expire'];
             foreach ($columns as $column) {
                 if (!$this->database->getSchemaInterrogator()->columnExists($column, $table, $schema)) {
                     throw new SessionDatabaseStructureException($table, $schema);
@@ -40,7 +40,7 @@ class DatabaseSessionHandler extends SessionHandler
 
     public function destroy(string $id): bool
     {
-        $this->database->query("DELETE FROM $this->table WHERE session_id = ?", [$id]);
+        $this->database->query("DELETE FROM $this->table WHERE id = ?", [$id]);
         return true;
     }
 
@@ -63,7 +63,7 @@ class DatabaseSessionHandler extends SessionHandler
 
     public function read(string $id): string
     {
-        $statement = $this->database->query("SELECT data FROM $this->table WHERE session_id = ?", [$id]);
+        $statement = $this->database->query("SELECT data FROM $this->table WHERE id = ?", [$id]);
         return $statement->next()?->data ?? "";
     }
 
@@ -71,8 +71,8 @@ class DatabaseSessionHandler extends SessionHandler
     {
         $access = time();
         $expire = $access + ini_get('session.gc_maxlifetime');
-        $sql = "INSERT INTO $this->table(session_id, access, data, expire) 
-                     VALUES (?, ?, ?, ?) ON CONFLICT (session_id) DO UPDATE
+        $sql = "INSERT INTO $this->table(id, access, data, expire) 
+                     VALUES (?, ?, ?, ?) ON CONFLICT (id) DO UPDATE
                      SET access = excluded.access, 
                          data = excluded.data,
                          expire = excluded.expire";
