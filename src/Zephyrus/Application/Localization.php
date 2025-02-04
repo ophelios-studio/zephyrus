@@ -434,7 +434,7 @@ class Localization
             "datetime" => Formatter::dateTime($value),
             "decimal" => Formatter::decimal($value),
             "percent" => Formatter::percent($value),
-            default => $value
+            default => format($type, $value)
         };
     }
 }
