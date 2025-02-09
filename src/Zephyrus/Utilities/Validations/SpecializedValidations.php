@@ -9,7 +9,7 @@ trait SpecializedValidations
      */
     public static function isPhone($data): bool
     {
-        return preg_match("/^([\(\+])?([0-9]{1,3}([\s])?)?([\+|\(|\-|\)|\s])?([0-9]{2,4})([\-|\)|\.|\s]([\s])?)?([0-9]{2,4})?([\.|\-|\s])?([0-9]{4,8})$/", $data);
+        return preg_match("/^\+?1?[\s\-\.]?([2-9][0-9]{2})[\s\-\.]?([2-9][0-9]{2})[\s\-\.]?([0-9]{4})$/", $data);
     }
 
     public static function isUrl($data): bool
