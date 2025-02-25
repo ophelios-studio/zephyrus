@@ -130,6 +130,18 @@ function localize(string $key, ...$args): string
 }
 
 /**
+ * Alias name for localize.
+ *
+ * @param string $key
+ * @param ...$args
+ * @return string
+ */
+function i18n(string $key, ...$args): string
+{
+    return Application::getInstance()->getLocalization()->localize($key, $args);
+}
+
+/**
  * Shortcut function to convert anonymous objects into associative arrays.
  *
  * @param stdClass $object
