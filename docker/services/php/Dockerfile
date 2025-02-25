@@ -15,7 +15,7 @@ RUN docker-php-ext-enable xdebug
 
 # Install APCu PHP extension
 RUN pecl install apcu
-RUN docker-php-ext-enable apcu --ini-name 10-docker-php-ext-apcu.ini
+RUN docker-php-ext-enable apcu --ini-name docker-php-ext-apcu.ini
 
 # Install Freetype and GD extensions
 RUN docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg
@@ -28,6 +28,7 @@ RUN docker-php-ext-install pdo_pgsql && \
     docker-php-ext-install zip && \
     docker-php-ext-install intl && \
     docker-php-ext-install xml && \
+    docker-php-ext-install bcmath && \
     docker-php-ext-install mbstring && \
     docker-php-ext-install exif && \
     docker-php-ext-install gettext
@@ -54,3 +55,9 @@ RUN rm -rf /usr/src/*
 
 # Timezone
 ENV TZ "America/Montreal"
+
+# Copy specific php.ini directives
+COPY custom.ini /usr/local/etc/php/conf.d/base-custom.ini
+
+# Default virtual hosts (https self signed)
+COPY vhosts/default.conf /etc/apache2/sites-enabled/default.conf
