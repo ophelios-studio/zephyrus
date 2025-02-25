@@ -1,10 +1,7 @@
-version: "3.7"
-
 services:
   webserver:
     build:
-      context: .
-      dockerfile: "./docker/services/php82/Dockerfile"
+      context: "./docker/services/php"
     container_name: "zephyrus_webserver"
     restart: 'always'
     ports:
@@ -13,9 +10,9 @@ services:
     links:
       - database
     volumes:
-      - ./:/var/www/html:cached
+      - ./:/var/www/html
       - ./docker/vhosts:/etc/apache2/sites-enabled
-      - ./docker/services/php82/custom.ini:/usr/local/etc/php/conf.d/custom.ini
+      - ./docker/services/php/custom.ini:/usr/local/etc/php/conf.d/custom.ini
 
   database:
     build:
@@ -26,5 +23,5 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_DB: 'zephyrus'
-      POSTGRES_USER: 'demo'
-      POSTGRES_PASSWORD: 'demo123!'
+      POSTGRES_USER: 'dev'
+      POSTGRES_PASSWORD: 'dev'

@@ -1,4 +1,4 @@
-FROM postgres:14-bullseye
+FROM postgres:17-bookworm
 
 # Install french language locale
 RUN localedef -i fr_CA -c -f UTF-8 -A /usr/share/locale/locale.alias fr_CA.UTF-8
