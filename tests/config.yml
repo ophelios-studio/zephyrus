@@ -14,8 +14,8 @@ locale:
 
 database:
   hostname: "zephyrus_database"
-  username: "demo"
-  password: "demo123!"
+  username: "dev"
+  password: "dev"
   database: "zephyrus"
 
 session:

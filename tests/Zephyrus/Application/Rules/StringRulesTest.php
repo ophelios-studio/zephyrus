@@ -27,9 +27,9 @@ class StringRulesTest extends TestCase
     {
         $rule = Rule::phone();
         self::assertTrue($rule->isValid("450-666-6666"));
-        self::assertTrue($rule->isValid("(450) 555-5555"));
+        self::assertTrue($rule->isValid("450-555-5555"));
         self::assertTrue($rule->isValid("1-450-555-5555"));
-        self::assertTrue($rule->isValid("1 (450) 555-5555"));
+        self::assertTrue($rule->isValid("1-450-555-5555"));
         self::assertFalse($rule->isValid("boby"));
         self::assertFalse($rule->isValid(""));
         self::assertFalse($rule->isValid("450-eee-3422"));

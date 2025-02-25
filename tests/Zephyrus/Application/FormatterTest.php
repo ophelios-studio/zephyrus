@@ -14,8 +14,8 @@ class FormatterTest extends TestCase
     public function testFormatDecimal()
     {
         $result = Formatter::decimal(12.342743);
-        self::assertEquals("12,3427", $result);
-        $result = Formatter::decimal(12.346);
+        self::assertEquals("12,34", $result);
+        $result = Formatter::decimal(12.346, 2, 3);
         self::assertEquals("12,346", $result);
         $result = Formatter::decimal(12.1);
         self::assertEquals("12,10", $result);
@@ -35,8 +35,8 @@ class FormatterTest extends TestCase
         self::assertEquals("0", $result);
         $result = Formatter::decimal(null, 0, 0);
         self::assertEquals("-", $result);
-        $result = Formatter::decimal(27.5*11.29, 0, 2); //Test of floating point errors
-        self::assertEquals("310,48", $result);
+        $result = Formatter::decimal(27.5*11.29, 0, 3); //Test of floating point errors
+        self::assertEquals("310,475", $result);
     }
 
     public function testEllipsis()
@@ -53,12 +53,12 @@ class FormatterTest extends TestCase
         self::assertEquals('500,45 $', $result);
         $result = Formatter::money(500.459);
         self::assertEquals('500,46 $', $result);
-        $result = Formatter::money(500.75657645345, 0, 0);
+        $result = Formatter::money(500.75657645345, false, 0, 0);
         self::assertEquals('501 $', $result);
         $result = Formatter::money(500.455);
         self::assertEquals('500,46 $', $result);
-        $result = Formatter::money(27.5*11.29);
-        self::assertEquals('310,48 $', $result); //Breaks because multiplication is float(310.47499999999997) so is rounded down...
+        $result = Formatter::money(27.5*11.29, false, 2, 3);
+        self::assertEquals('310,475 $', $result); //Breaks because multiplication is float(310.47499999999997) so is rounded down...
         $result = Formatter::money(310.475);
         self::assertEquals('310,48 $', $result);
         $result = Formatter::money(2.265);
@@ -77,7 +77,7 @@ class FormatterTest extends TestCase
 
     public function testFormatPercent()
     {
-        $result = Formatter::percent(0.15);
+        $result = Formatter::percent(0.15, 2);
         self::assertEquals('15,00 %', $result);
         $result = Formatter::percent(0.15, 0, 0);
         self::assertEquals('15 %', $result);

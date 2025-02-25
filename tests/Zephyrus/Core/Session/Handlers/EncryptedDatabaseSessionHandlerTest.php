@@ -15,7 +15,7 @@ class EncryptedDatabaseSessionHandlerTest extends TestCase
         DatabaseSession::initiate(Configuration::getDatabase());
         $db = DatabaseSession::getInstance()->getDatabase();
         $db->query("DROP TABLE IF EXISTS session");
-        $db->query('CREATE TABLE session(session_id TEXT PRIMARY KEY, access INT, data TEXT)');
+        $db->query('CREATE TABLE session(session_id TEXT PRIMARY KEY, access INT, data TEXT, expire INT)');
     }
 
     public static function tearDownAfterClass(): void

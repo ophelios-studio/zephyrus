@@ -99,9 +99,9 @@ class DirectoryTest extends TestCase
         Directory::create(ROOT_DIR . '/lib/filesystem/new_dir/dead_inside');
         $file = File::create(ROOT_DIR . '/lib/filesystem/new_dir/test.dat');
         $file->write("hello world");
-        $file->touch(strtotime('2025-01-01 15:00:00'));
+        $file->touch();
         $directory = new Directory(ROOT_DIR . '/lib/filesystem/new_dir');
-        self::assertEquals('2025-01-01', date(FORMAT_DATE, $directory->getLastModifiedTime()));
+        self::assertEquals(date(FORMAT_DATE), date(FORMAT_DATE, $directory->getLastModifiedTime()));
         $directory->remove();
         self::assertFalse(file_exists(ROOT_DIR . '/lib/filesystem/new_dir'));
     }

@@ -9,10 +9,10 @@ class ComposerPackageTest extends TestCase
     {
         $array = ComposerPackage::getPackages();
         $versions = ComposerPackage::getVersions();
-        $this->assertCount(3, $array);
-        $this->assertEquals("2.7.6", ComposerPackage::getVersion('pug-php/pug'));
-        $this->assertEquals("2.7.6", $versions['pug-php/pug']);
-        $this->assertEquals("2.7.6", $array['pug-php/pug']->version);
-        $this->assertEquals("2.7.6", ComposerPackage::getPackage('pug-php/pug')->version);
+        $this->assertCount(5, $array);
+        $this->assertEquals("v3.0.20", ComposerPackage::getVersion('latte/latte'));
+        $this->assertEquals("v3.0.20", $versions['latte/latte']);
+        $this->assertEquals("v3.0.20", $array['latte/latte']->version);
+        $this->assertEquals("v3.0.20", ComposerPackage::getPackage('latte/latte')->version);
     }
 }

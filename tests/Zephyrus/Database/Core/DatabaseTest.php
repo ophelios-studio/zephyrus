@@ -1,6 +1,7 @@
 <?php namespace Zephyrus\Tests\Database\Core;
 
 use Zephyrus\Application\Localization;
+use Zephyrus\Application\LocalizationConfiguration;
 use Zephyrus\Database\Core\Database;
 use Zephyrus\Exceptions\DatabaseException;
 use Zephyrus\Exceptions\FatalDatabaseException;
@@ -70,7 +71,7 @@ class DatabaseTest extends DatabaseTestCase
     {
         $db = $this->buildDatabase();
         $source = $db->getConfiguration();
-        self::assertEquals("demo", $source->getUsername());
+        self::assertEquals("dev", $source->getUsername());
         self::assertEquals("zephyrus", $source->getDatabaseName());
     }
 
@@ -106,18 +107,20 @@ class DatabaseTest extends DatabaseTestCase
 
     public function testEvaluationOfCustomTypes()
     {
-        Localization::getInstance()->start();
+        $configuration = new LocalizationConfiguration();
+        $localization = new Localization($configuration);
+        $localization->start();
         $db = $this->buildDatabase();
         $db->query("CREATE TYPE multi_lang_text AS(fr TEXT, en TEXT, es TEXT)");
         $db->query("CREATE TABLE formation(training_course_id SERIAL PRIMARY KEY, code TEXT NOT NULL, name multi_lang_text NOT NULL)");
         $db->query("INSERT INTO formation(code, name) VALUES (?, (?, ?, ?))", ['D-2-20', 'Le test', 'The test', 'El Test']);
 
-        $db->registerTypeConversion('MULTI_LANG_TEXT', function ($compositeValue) {
-            $code = Localization::getInstance()->getLoadedLanguage()->lang_code;
+        $db->registerTypeConversion('MULTI_LANG_TEXT', function ($compositeValue) use ($localization) {
+            $code = $localization->getLoadedLanguage()->lang_code;
             $properties = ['fr', 'en', 'es'];
             $compositeValue = str_replace('(', '', $compositeValue);
             $compositeValue = str_replace(')', '', $compositeValue);
-            $parts = str_getcsv($compositeValue, ",", "\"");
+            $parts = str_getcsv($compositeValue, ",", "\"", "\\");
             $results = [];
             foreach ($properties as $index => $name) {
                 $results[$name] = trim($parts[$index], "\"");

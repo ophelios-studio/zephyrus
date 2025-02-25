@@ -18,7 +18,7 @@ class DatabaseSessionTest extends TestCase
     {
         DatabaseSession::initiate(Configuration::getDatabase());
         $database = DatabaseSession::getInstance()->getDatabase();
-        self::assertEquals("demo", $database->getConfiguration()->getUsername());
+        self::assertEquals("dev", $database->getConfiguration()->getUsername());
         self::assertEquals("zephyrus", $database->getConfiguration()->getDatabaseName());
         self::assertEquals(['public'], $database->getConfiguration()->getSearchPaths());
     }

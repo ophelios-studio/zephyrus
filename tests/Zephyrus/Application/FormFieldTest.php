@@ -40,7 +40,6 @@ class FormFieldTest extends TestCase
         ]);
         self::assertFalse($field->verify());
         self::assertTrue($field->hasError());
-        var_dump($field->getErrorMessages());
         self::assertCount(1, $field->getErrorMessages());
         self::assertEquals("Must be a valid integer.", $field->getErrorMessages()[0]);
         self::assertEquals([

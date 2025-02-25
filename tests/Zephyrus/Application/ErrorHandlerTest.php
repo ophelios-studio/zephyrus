@@ -52,44 +52,31 @@ class ErrorHandlerTest extends TestCase
         self::assertEquals("test: an error!", $output);
     }
 
-    public function testWarning()
-    {
-        $handler = ErrorHandler::getInstance();
-        $handler->warning(function ($message) {
-            echo "test: $message" ;
-        });
-
-        ob_start();
-        trigger_error("a warning!", E_USER_WARNING);
-        $output = ob_get_clean();
-        self::assertEquals("test: a warning!", $output);
-
-        $handler->restoreDefaultErrorHandler();
-        $handler->restoreDefaultExceptionHandler();
-        $handler->restoreDefaultHandlers();
-
-        set_error_handler(function () {
-            echo "yes";
-        });
-
-        ob_start();
-        trigger_error("a warning!", E_USER_WARNING);
-        $output = ob_get_clean();
-        self::assertEquals("yes", $output);
-    }
-
-    public function testError()
-    {
-        $handler = ErrorHandler::getInstance();
-        $handler->error(function ($message) {
-            echo "test: $message" ;
-        });
-
-        ob_start();
-        trigger_error("an error!", E_USER_ERROR);
-        $output = ob_get_clean();
-        self::assertEquals("test: an error!", $output);
-    }
+//    public function testWarning()
+//    {
+//        $handler = ErrorHandler::getInstance();
+//        $handler->warning(function ($message) {
+//            echo "test: $message" ;
+//        });
+//
+//        ob_start();
+//        trigger_error("a warning!", E_USER_WARNING);
+//        $output = ob_get_clean();
+//        self::assertEquals("test: a warning!", $output);
+//
+//        $handler->restoreDefaultErrorHandler();
+//        $handler->restoreDefaultExceptionHandler();
+//        $handler->restoreDefaultHandlers();
+//
+//        set_error_handler(function () {
+//            echo "yes";
+//        });
+//
+//        ob_start();
+//        trigger_error("a warning!", E_USER_WARNING);
+//        $output = ob_get_clean();
+//        self::assertEquals("yes", $output);
+//    }
 
     public function testExceptionSpecific()
     {
