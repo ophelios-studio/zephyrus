@@ -11,9 +11,7 @@
   "license": "MIT",
   "require": {
     "php": ">=8.2",
-    "phug/phug": "^1.11",
     "latte/latte": "^3.0",
-    "js-phpize/js-phpize-phug": "2.*",
     "symfony/yaml": "^6.3",
     "phpmailer/phpmailer": "^6.6",
     "ext-pdo": "*",
