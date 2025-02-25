@@ -2,23 +2,35 @@
 
 trait BaseValidations
 {
-    public static function isDecimal($data): bool
+    public static function isDecimal(?string $data): bool
     {
+        if (is_null($data)) {
+            return false;
+        }
         return preg_match("/^[0-9]+(([.,])[0-9]+)?$/", $data);
     }
 
-    public static function isInteger($data): bool
+    public static function isInteger(?string $data): bool
     {
+        if (is_null($data)) {
+            return false;
+        }
         return preg_match("/^[0-9]+$/", $data);
     }
 
-    public static function isSignedDecimal($data): bool
+    public static function isSignedDecimal(?string $data): bool
     {
+        if (is_null($data)) {
+            return false;
+        }
         return preg_match("/^-?[0-9]+(([.,])[0-9]+)?$/", $data);
     }
 
-    public static function isSignedInteger($data): bool
+    public static function isSignedInteger(?string $data): bool
     {
+        if (is_null($data)) {
+            return false;
+        }
         return preg_match("/^-?[0-9]+$/", $data);
     }
 
@@ -38,7 +50,7 @@ trait BaseValidations
         return is_array($data) && array_keys($data) != range(0, count($data) - 1);
     }
 
-    public static function isBoolean($data): bool
+    public static function isBoolean(mixed $data): bool
     {
         return is_bool($data)
             || strcasecmp($data, "true") == 0
