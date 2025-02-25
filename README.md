@@ -2,7 +2,7 @@
 
 ---
 <p align="center">
-    <img align="center" src="https://github.com/user-attachments/assets/6625b148-9426-4625-a35e-559004dc4f11" width="45%">           
+    <img align="center" src="https://github.com/user-attachments/assets/6625b148-9426-4625-a35e-559004dc4f11" width="100px">           
 </p>
 <p align="center"><i>Framework PHP élégant, simple, léger, plaisant et flexible</i></p>
 
