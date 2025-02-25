@@ -7,13 +7,10 @@
 
 ---
 
-[![Maintainability](https://api.codeclimate.com/v1/badges/6981c700b82a43834672/maintainability)](https://codeclimate.com/github/dadajuice/zephyrus/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/6981c700b82a43834672/test_coverage)](https://codeclimate.com/github/dadajuice/zephyrus/test_coverage)
-[![codecov](https://codecov.io/gh/dadajuice/zephyrus/branch/master/graph/badge.svg)](https://codecov.io/gh/dadajuice/zephyrus)
-[![Build Status](https://app.travis-ci.com/dadajuice/zephyrus.svg?branch=master)](https://app.travis-ci.com/dadajuice/zephyrus)
-[![StyleCI](https://styleci.io/repos/77175312/shield?branch=master)](https://styleci.io/repos/77175312)
-[![GitHub issues](https://img.shields.io/github/issues/dadajuice/zephyrus.svg)]()
-[![GitHub release](https://img.shields.io/github/release/dadajuice/zephyrus.svg)]()
+[![Maintainability](https://qlty.sh/badges/d627fe7a-f174-4cb1-b1c5-fb2005550fcb/maintainability.svg)](https://qlty.sh/gh/ophelios-studio/projects/zephyrus)
+[![Code Coverage](https://qlty.sh/badges/d627fe7a-f174-4cb1-b1c5-fb2005550fcb/test_coverage.svg)](https://qlty.sh/gh/ophelios-studio/projects/zephyrus)
+[![GitHub issues](https://img.shields.io/github/issues/ophelios/zephyrus.svg)]()
+[![GitHub release](https://img.shields.io/github/release/ophelios/zephyrus.svg)]()
 
 # Philosophie
 Bienvenue dans le Framework Zephyrus! Ce framework est fondé sur un modèle pédagogique en s'orientant sur une structure MVC simple, une approche de programmation flexible laissant place à une extensibilité pour tous types de projet, une forte considération pour la sécurité applicative et une liberté de développement. Le tout offert depuis un noyeau orienté-objet élégant favorisant l'écriture d'un code de qualité propre et maintenable. Développement avec une philosophie de maintenir un plaisir à programmer en n'étant pas rigoureusement strict sur une utilisation figée où tout doit passer par une configuration et y être limité. Zephyrus s'insère à mi-chemin entre les plus petits frameworks et les monstres pour ainsi répondre aux besoins de la plupart des projets.
