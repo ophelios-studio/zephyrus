@@ -37,9 +37,13 @@ trait JavascriptConverter
                 if (preg_match_all('/\d*[+-\/\* ]\d+/', $char, $matches)) {
                     $match = preg_split('/(\W?\d+)/', implode('', $matches[0]), -1, PREG_SPLIT_DELIM_CAPTURE);
 
-                    if (array_sum($match) >= 20 && array_sum($match) <= 127) {
-                        $converted .= chr(array_sum($match));
+                    // Filter out non-numeric or empty strings from $match
+                    $filteredMatch = array_filter($match, fn($item) => is_numeric($item));
+
+                    if (array_sum($filteredMatch) >= 20 && array_sum($filteredMatch) <= 127) {
+                        $converted .= chr(array_sum($filteredMatch));
                     }
+
                 } elseif (!empty($char) && $char >= 20 && $char <= 127) {
                     $converted .= chr($char);
                 }
