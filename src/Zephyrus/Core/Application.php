@@ -8,7 +8,6 @@ use Zephyrus\Application\Localization;
 use Zephyrus\Application\LocalizationConfiguration;
 use Zephyrus\Application\Views\LatteEngine;
 use Zephyrus\Application\Views\PhpEngine;
-use Zephyrus\Application\Views\PhugEngine;
 use Zephyrus\Application\Views\RenderEngine;
 use Zephyrus\Exceptions\LocalizationException;
 use Zephyrus\Exceptions\Session\SessionDatabaseStructureException;
@@ -208,8 +207,6 @@ class Application
         $this->renderEngine = match ($renderEngineName) {
             LatteEngine::NAME => new LatteEngine(Configuration::getRender()
                 ?? LatteEngine::DEFAULT_CONFIGURATIONS),
-            PhugEngine::NAME => new PhugEngine(Configuration::getRender()
-                ?? PhugEngine::DEFAULT_CONFIGURATIONS),
             PhpEngine::NAME => new PhpEngine()
         };
     }
