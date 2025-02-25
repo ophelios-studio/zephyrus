@@ -9,8 +9,8 @@
 
 [![Maintainability](https://qlty.sh/badges/d627fe7a-f174-4cb1-b1c5-fb2005550fcb/maintainability.svg)](https://qlty.sh/gh/ophelios-studio/projects/zephyrus)
 [![Code Coverage](https://qlty.sh/badges/d627fe7a-f174-4cb1-b1c5-fb2005550fcb/test_coverage.svg)](https://qlty.sh/gh/ophelios-studio/projects/zephyrus)
-[![GitHub issues](https://img.shields.io/github/issues/ophelios/zephyrus.svg)]()
-[![GitHub release](https://img.shields.io/github/release/ophelios/zephyrus.svg)]()
+[![GitHub issues](https://img.shields.io/github/issues/ophelios-studio/zephyrus.svg)]()
+[![GitHub release](https://img.shields.io/github/release/ophelios-studio/zephyrus.svg)]()
 
 # Philosophie
 Bienvenue dans le Framework Zephyrus! Ce framework est fondé sur un modèle pédagogique en s'orientant sur une structure MVC simple, une approche de programmation flexible laissant place à une extensibilité pour tous types de projet, une forte considération pour la sécurité applicative et une liberté de développement. Le tout offert depuis un noyeau orienté-objet élégant favorisant l'écriture d'un code de qualité propre et maintenable. Développement avec une philosophie de maintenir un plaisir à programmer en n'étant pas rigoureusement strict sur une utilisation figée où tout doit passer par une configuration et y être limité. Zephyrus s'insère à mi-chemin entre les plus petits frameworks et les monstres pour ainsi répondre aux besoins de la plupart des projets.
