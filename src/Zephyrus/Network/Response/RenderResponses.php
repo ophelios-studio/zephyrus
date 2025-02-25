@@ -21,9 +21,12 @@ trait RenderResponses
     public function render(string $page, array $args = []): Response
     {
         $engine = Application::getInstance()->getRenderEngine();
-        ob_start();
-        $engine->renderFromFile($page, $args);
-        $output = ob_get_clean();
+        try {
+            ob_start();
+            $engine->renderFromFile($page, $args);
+        } finally {
+            $output = ob_get_clean();
+        }
         Form::removeMemorizedValue();
         Flash::clearAll();
         Feedback::clear();
@@ -41,9 +44,12 @@ trait RenderResponses
      */
     public function renderPhp(string $page, array $args = []): Response
     {
-        ob_start();
-        (new PhpEngine())->renderFromFile($page, $args);
-        $output = ob_get_clean();
+        try {
+            ob_start();
+            (new PhpEngine())->renderFromFile($page, $args);
+        } finally {
+            $output = ob_get_clean();
+        }
         Form::removeMemorizedValue();
         Flash::clearAll();
         Feedback::clear();
