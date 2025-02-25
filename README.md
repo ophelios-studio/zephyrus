@@ -1,8 +1,9 @@
-<p align="center">
-    <img align="center" src="https://cloud.githubusercontent.com/assets/4491532/21667795/e69dec6e-d2c9-11e6-8563-133291489ed3.png" width="45%">           
-</p>
+
 
 ---
+<p align="center">
+    <img align="center" src="https://github.com/user-attachments/assets/6625b148-9426-4625-a35e-559004dc4f11" width="45%">           
+</p>
 <p align="center"><i>Framework PHP élégant, simple, léger, plaisant et flexible</i></p>
 
 ---
