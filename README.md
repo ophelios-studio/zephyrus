@@ -20,39 +20,39 @@ Bienvenue dans le Framework Zephyrus! Ce framework est fondé sur un modèle pé
 
 # Quelques caractéristiques générales
 * Une **structure de projet simple et intuitive** basée sur une architecture Model-View-Controller. 
-* Traitement des vues avec le préprocesseur HTML _[Pug](https://github.com/pug-php/pug)_ nativement intégré ou simplement du PHP natif.
+* Traitement des vues avec le préprocesseur HTML _[Latte](https://latte.nette.org)_ nativement intégré ou simplement du PHP natif.
 * Approche pédagogique pour la conception élégante de classes et favorise une rétrocompatibilité avec les fonctionnalités natives de PHP comme l'utilisation des super-globales, de la session et autres.
 * Routeur de requêtes simple et flexible basé sur des contrôleurs incluant une intégration facile de middlewares dans le flux d'une requête et d'un contrôleur du projet. Facilite la segmentation des responsabilités et la lecture d'une chaîne d'exécution.
-* Plusieurs mécanismes de sécurité intégrés tel que les entêtes CSP, les jetons CSRF, protection XSS, détection d'intrusion basé sur le projet (_[PHPIDS](https://github.com/PHPIDS/PHPIDS)_), mécanisme d'authorisation et plus encore!
-* Philosophie d'accès aux données depuis des courtiers manuellement définis offrant un contôle complet sur la construction des requêtes SQL et, par conséquent, une facilité de maintenance et d'optimisation.
+* Plusieurs mécanismes de sécurité intégrés tels que les entêtes CSP, les jetons CSRF, protection XSS, détection d'intrusion basé sur le projet (_[PHPIDS](https://github.com/PHPIDS/PHPIDS)_), mécanisme d'autorisations et plus encore !
+* Philosophie d'accès aux données depuis des courtiers manuellement définis offrant un contrôle complet sur la construction des requêtes SQL et, par conséquent, une facilité de maintenance et d'optimisation.
 * Approche simple pour intégrer des recherches, tris et pagination sur les requêtes manuelles.
 * Système de validation de formulaires élégant et facilement extensible offrant une multitude de règles nativement sur les nombres, les chaînes, les fichiers téléversés, les dates, etc.
-* Moteur unique simple et optimisé pour la gestion des chaînes de caractères depuis une structure JSON, le tout facilement organisé pour offrir une internationalisation.
-* Configuration d’un projet rapide et flexible permettant des paramètres personnalisées utilisables facilement. 
+* Moteur unique simple et optimisé pour la gestion des chaînes de caractères d'internationalisation (i18n) depuis une structure JSON, le tout facilement organisé.
+* Configuration d’un projet rapide et flexible permettant des paramètres personnalisés utilisables facilement. 
 * Hautement extensibles facilement grâce à sa compatibilité avec les modules Composer.
-* Plusieurs utilitaires rapides : cryptographie, validations, système de fichiers, gestionnaire d'erreurs, transport de messages, etc.
+* Plusieurs utilitaires rapides : cryptographie, validations, système de fichiers, gestionnaire d'erreurs, transport de messages, etc.
 * Et plus encore !
 
 # Installation
-Zephyrus nécessite PHP 8.2 ou plus. Présentement, supporte uniquement Apache comme serveur web (pour un autre type de serveur, il suffirait d’adapter les fichiers .htaccess). Le gestionnaire de dépendance [Composer](https://getcomposer.org/) est également requis. La structure résultante de l’installation contient plusieurs exemples pour faciliter les premiers pas.
+Zephyrus nécessite PHP 8.4 ou plus. Présentement, supporte uniquement Apache comme serveur web (pour un autre type de serveur, il suffirait d’adapter les fichiers .htaccess). Le gestionnaire de dépendance [Composer](https://getcomposer.org/) est également requis. La structure résultante de l’installation contient plusieurs exemples pour faciliter les premiers pas.
 
-#### Option 1 : Installation depuis composer (recommandé)
+#### Option 1 : Installation depuis composer (recommandé)
 ```
 $ composer create-project zephyrus/framework <PROJECT_NAME>
 ```
 
-#### Option 2 : Depuis une archive
+#### Option 2 : Depuis une archive
 ```
 $ mkdir <PROJECT_NAME>
 $ cd <PROJECT_NAME>
-$ wget https://github.com/dadajuice/zephyrus-framework/archive/vx.y.z.tar.gz
+$ wget https://github.com/ophelios/zephyrus-framework/archive/vx.y.z.tar.gz
 $ tar -xvf vx.y.z.tar.gz --strip 1
 $ composer install
 ```
 
-#### Option 3 : Depuis les sources (version de développement pour faire un PR par exemple)
+#### Option 3 : Depuis les sources (version de développement pour faire un PR par exemple)
 ```
-$ git clone https://github.com/dadajuice/zephyrus-framework.git
+$ git clone https://github.com/ophelios/zephyrus-framework.git
 $ composer install  
 ```
 
@@ -101,7 +101,8 @@ app/Controllers/ExampleBroker.php
 ```php
 <?php namespace Controllers;
 
-use Models\Brokers\ClientBroker;use Zephyrus\Network\Router\Get;
+use Models\Brokers\ClientBroker;
+use Zephyrus\Network\Router\Get;
 
 class ExampleController extends Controller
 {
