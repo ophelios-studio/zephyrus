@@ -6,10 +6,8 @@ use stdClass;
 use Zephyrus\Database\Core\Database;
 
 /**
- * The Broker class is an extension of the DatabaseBroker and is NOT necessary to use the database. {@see \Zephyrus\Database\DatabaseBroker}
- * It provides a more convenient way to interact with the database by providing C.R.U.D operations functions. And less overhead for insert and update operations.à
- * 
- * @author T1WiLLi
+ * The Broker class is an extension of the DatabaseBroker and is NOT necessary to use the database. See {@see \Zephyrus\Database\DatabaseBroker} for more informations.
+ * It provides a more convenient way to interact with the database by providing C.R.U.D operations functions. And less overhead for insert and update operations.
  */
 abstract class Broker extends DatabaseBroker
 {
