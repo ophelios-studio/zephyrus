@@ -32,6 +32,10 @@ abstract class Entity implements JsonSerializable
                 if ($reflectionType instanceof ReflectionUnionType) { // Do not consider Obj1|Obj2 types
                     continue;
                 }
+                if (is_null($value)) { // Keep null values
+                    $instance->$name = $value;
+                    continue;
+                }
                 if (!$reflectionType->isBuiltin()) {
                     $className = $reflectionType->getName();
                     $innerReflection = new ReflectionClass($className);
@@ -47,9 +51,7 @@ abstract class Entity implements JsonSerializable
                         $instance->$name = $className::build($value);
                     }
                 } else {
-                    if (!is_null($value)) { // Keep null as null
-                        settype($value, $reflectionType->getName());
-                    }
+                    settype($value, $reflectionType->getName());
                     $instance->$name = $value;
                 }
             }
