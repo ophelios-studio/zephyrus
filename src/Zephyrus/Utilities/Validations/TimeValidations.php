@@ -89,6 +89,6 @@ trait TimeValidations
         if (empty($data) || !self::isDate($referenceDateBegin) || !self::isDate($referenceDateEnd)) {
             return false;
         }
-        return $data > $referenceDateBegin && $data < $referenceDateEnd;
+        return $data >= $referenceDateBegin && $data <= $referenceDateEnd;
     }
 }
