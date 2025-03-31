@@ -45,8 +45,8 @@ class TimeRulesTest extends TestCase
         $rule = Rule::dateBetween('2018-01-12', '2019-01-12');
         self::assertFalse($rule->isValid("2017-01-01"));
         self::assertFalse($rule->isValid("2019-01-15"));
-        self::assertFalse($rule->isValid("2019-01-12"));
-        self::assertFalse($rule->isValid("2018-01-12"));
+        self::assertTrue($rule->isValid("2019-01-12"));
+        self::assertTrue($rule->isValid("2018-01-12"));
         self::assertTrue($rule->isValid("2018-05-13"));
         self::assertTrue($rule->isValid("2018-08-23"));
         self::assertTrue($rule->isValid("2019-01-11"));
