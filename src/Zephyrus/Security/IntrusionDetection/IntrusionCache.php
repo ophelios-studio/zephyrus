@@ -1,7 +1,7 @@
 <?php namespace Zephyrus\Security\IntrusionDetection;
 
 use RuntimeException;
-use Zephyrus\Utilities\Cache;
+use Zephyrus\Core\Cache\ApcuCache;
 
 class IntrusionCache
 {
@@ -9,11 +9,7 @@ class IntrusionCache
      * Key used with APCU (PHP Cache) that keeps the previously loaded intrusion rule instances.
      */
     private const CACHE_KEY = "ids_rules";
-
-    /**
-     * @var Cache
-     */
-    private Cache $cache;
+    private ApcuCache $cache;
 
     /**
      * Contains the loaded IntrusionRule instances available to the cache. Empty if not yet initiated or has been
@@ -53,7 +49,7 @@ class IntrusionCache
      */
     public function cache(array $intrusionRules): void
     {
-        $this->cache->cache($intrusionRules);
+        $this->cache->set(self::CACHE_KEY, $intrusionRules);
         $this->rules = $intrusionRules;
     }
 
@@ -62,7 +58,7 @@ class IntrusionCache
      */
     public function clear(): void
     {
-        $this->cache->remove();
+        $this->cache->delete(self::CACHE_KEY);
         $this->rules = [];
     }
 
@@ -71,9 +67,9 @@ class IntrusionCache
      */
     private function load(): void
     {
-        $this->cache = new Cache(self::CACHE_KEY);
-        if ($this->cache->exists()) {
-            $this->rules = (array) $this->cache->read();
+        $this->cache = new ApcuCache();
+        if ($this->cache->has(self::CACHE_KEY)) {
+            $this->rules = (array) $this->cache->get(self::CACHE_KEY);
         }
     }
 }

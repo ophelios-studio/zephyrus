@@ -2,13 +2,9 @@
 
 use Zephyrus\Network\ContentType;
 use Zephyrus\Network\HttpMethod;
-use Zephyrus\Utilities\Cache;
 
 class RouteRepository
 {
-    private const CACHE_ROUTE_KEY = 'router_repository';
-    private const CACHE_UPDATE_KEY = 'router_repository_update_time';
-
     /**
      * Associative array that contains all defined routes. Routes are organized by HTTP method as main key, value is an
      * array of stdClass representing the route.
@@ -18,23 +14,15 @@ class RouteRepository
     private array $routes = [];
 
     /**
-     * APCu php cache to keep a reference to all the defined routes.
+     * APCu php cache to keep a reference to the controller repository.
      *
-     * @var Cache
+     * @var RouteCache
      */
-    private Cache $cache;
-
-    /**
-     * APCu php cache to keep a reference to the last time the route were updated.
-     *
-     * @var Cache
-     */
-    private Cache $cacheUpdate;
+    private RouteCache $cache;
 
     public function __construct()
     {
-        $this->cache = new Cache(self::CACHE_ROUTE_KEY);
-        $this->cacheUpdate = new Cache(self::CACHE_UPDATE_KEY);
+        $this->cache = new RouteCache();
     }
 
     /**
@@ -46,11 +34,7 @@ class RouteRepository
      */
     public function isCacheOutdated(int $time): bool
     {
-        if (!$this->cache->exists()) {
-            return true;
-        }
-        $lastUpdate = $this->cacheUpdate->read() ?? 0;
-        return $lastUpdate < $time;
+        return $this->cache->isOutdated($time);
     }
 
     /**
@@ -62,13 +46,11 @@ class RouteRepository
     public function cache(): void
     {
         $this->cache->cache($this->routes);
-        $this->cacheUpdate->cache(time());
     }
 
     public function clear(): void
     {
-        $this->cache->remove();
-        $this->cacheUpdate->remove();
+        $this->cache->clear();
         $this->routes = [];
     }
 
