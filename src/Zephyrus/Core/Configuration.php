@@ -1,7 +1,14 @@
-<?php namespace Zephyrus\Application;
+<?php namespace Zephyrus\Core;
 
 use RuntimeException;
 use Zephyrus\Core\Configuration\ConfigurationFile;
+use Zephyrus\Core\Configuration\Security\SecurityConfiguration;
+use Zephyrus\Core\Configuration\SessionConfiguration;
+use Zephyrus\Exceptions\Session\SessionLifetimeException;
+use Zephyrus\Exceptions\Session\SessionRefreshRateException;
+use Zephyrus\Exceptions\Session\SessionRefreshRateProbabilityException;
+use Zephyrus\Exceptions\Session\SessionStorageModeException;
+use Zephyrus\Exceptions\Session\SessionSupportedRefreshModeException;
 
 class Configuration
 {
@@ -67,16 +74,23 @@ class Configuration
         return ($property) ? $configs[$property] ?? $defaultValue : $configs;
     }
 
-    public static function getSession(?string $property = null, mixed $defaultValue = null): mixed
+    /**
+     * @throws SessionStorageModeException
+     * @throws SessionRefreshRateException
+     * @throws SessionRefreshRateProbabilityException
+     * @throws SessionLifetimeException
+     * @throws SessionSupportedRefreshModeException
+     */
+    public static function getSession(): SessionConfiguration
     {
-        $configs = self::read('session');
-        return ($property) ? $configs[$property] ?? $defaultValue : $configs;
+        return new SessionConfiguration(self::read('session')
+            ?? SessionConfiguration::DEFAULT_CONFIGURATIONS);
     }
 
-    public static function getSecurity(?string $property = null, mixed $defaultValue = null): mixed
+    public static function getSecurity(): SecurityConfiguration
     {
-        $configs = self::read('security');
-        return ($property) ? $configs[$property] ?? $defaultValue : $configs;
+        return new SecurityConfiguration(self::read('security')
+            ?? SecurityConfiguration::DEFAULT_CONFIGURATIONS);
     }
 
     /**

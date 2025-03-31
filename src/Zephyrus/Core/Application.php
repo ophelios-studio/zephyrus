@@ -3,7 +3,6 @@
 use RuntimeException;
 use stdClass;
 use Zephyrus\Application\Bootstrap;
-use Zephyrus\Application\Configuration;
 use Zephyrus\Application\Localization;
 use Zephyrus\Application\LocalizationConfiguration;
 use Zephyrus\Application\Views\LatteEngine;
@@ -160,8 +159,6 @@ class Application
     protected function initializeSession(): void
     {
         $this->session = new Session(Configuration::getSession());
-        $this->session->setRequest($this->request);
-        $this->session->start();
     }
 
     protected function initializeLocalization(): void

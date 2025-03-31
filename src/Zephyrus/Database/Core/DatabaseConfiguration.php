@@ -3,6 +3,7 @@
 use PDO;
 use Zephyrus\Exceptions\FatalDatabaseException;
 
+// TODO (refactor): move into Core/Configuration
 class DatabaseConfiguration
 {
     public const DEFAULT_CONFIGURATIONS = [
