@@ -60,6 +60,7 @@ class SessionConfiguration
         $this->initializeTable();
         $this->initializeFingerprints();
         $this->initializeRefreshMode();
+        $this->initializeSavePath();
     }
 
     public function isEnabled(): bool
