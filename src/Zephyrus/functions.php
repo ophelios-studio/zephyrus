@@ -4,6 +4,7 @@ use Zephyrus\Application\Configuration;
 use Zephyrus\Application\Feedback;
 use Zephyrus\Application\Form;
 use Zephyrus\Core\Application;
+use Zephyrus\Core\Asset;
 use Zephyrus\Core\Session;
 use Zephyrus\Security\ContentSecurityPolicy;
 use Zephyrus\Utilities\StringUtility;
@@ -77,6 +78,11 @@ function format(string $type, ...$args): string
 {
     $class = '\Zephyrus\Utilities\Formatter';
     return forward_static_call_array([$class, $type], $args);
+}
+
+function asset(string $publicPath): string
+{
+    return new Asset($publicPath);
 }
 
 /**
