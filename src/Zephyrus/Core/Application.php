@@ -2,7 +2,6 @@
 
 use RuntimeException;
 use stdClass;
-use Zephyrus\Application\Bootstrap;
 use Zephyrus\Application\Localization;
 use Zephyrus\Application\Views\LatteEngine;
 use Zephyrus\Application\Views\PhpEngine;
@@ -23,9 +22,6 @@ use Zephyrus\Exceptions\Session\SessionStorageModeException;
 use Zephyrus\Exceptions\Session\SessionSupportedRefreshModeException;
 use Zephyrus\Exceptions\Session\SessionUseOnlyCookiesException;
 use Zephyrus\Network\Request;
-use Zephyrus\Network\Router;
-use Zephyrus\Network\Router\RouteRepository;
-use Zephyrus\Utilities\FileSystem\Directory;
 
 class Application
 {

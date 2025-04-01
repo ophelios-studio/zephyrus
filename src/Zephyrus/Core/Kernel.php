@@ -25,7 +25,7 @@ class Kernel
     private Request $request;
     private Router $router;
 
-    public function __construct()
+    public function __construct(string $applicationClass = Application::class)
     {
         $this->initializeEnvironnement();
         require_once(Bootstrap::getHelperFunctionsPath());
@@ -39,6 +39,7 @@ class Kernel
         $this->serverEnvironnement = new ServerEnvironnement($_SERVER);
         $this->request = new Request($this->serverEnvironnement);
         $this->router = $this->initializeRouter();
+        new $applicationClass($this->request);
     }
 
     public function getServerEnvironnement(): ServerEnvironnement
