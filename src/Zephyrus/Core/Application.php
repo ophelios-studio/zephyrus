@@ -35,27 +35,27 @@ class Application
     protected ?RenderEngine $renderEngine = null;
     protected ?Session $session = null;
     protected ?Localization $localization = null;
-    protected array $supportedLanguages = [];
+    protected array $supportedLanguages;
+
+    public static function getInstance(): self
+    {
+        if (is_null(self::$instance)) {
+            throw new RuntimeException("Application instance must first be initialized with constructor.");
+        }
+        return self::$instance;
+    }
 
     /**
      * @throws SessionException
      * @throws LocalizationException
      */
-    public static function initiate(Request $request): Router
+    public function __construct(Request $request)
     {
-        self::$instance = new self();
-        self::$instance->request = $request;
-        self::$instance->initializeSession();
-        self::$instance->initializeLocalization();
-        return self::$instance->initializeRouter();
-    }
-
-    public static function getInstance(): self
-    {
-        if (is_null(self::$instance)) {
-            throw new RuntimeException("Application instance must first be initialized with [Application::initiate()].");
-        }
-        return self::$instance;
+        $this->request = $request;
+        $this->supportedLanguages = [];
+        $this->initializeSession();
+        $this->initializeLocalization();
+        self::$instance = $this;
     }
 
     /**
@@ -154,24 +154,6 @@ class Application
         // messages should be explicit enough.
         $this->localization = new Localization(Configuration::getLocale());
         $this->localization->start();
-    }
-
-    protected function initializeRouter(): Router
-    {
-        $rootControllerPath = ROOT_DIR . '/app/Controllers';
-        $routeRepository = new RouteRepository();
-        if (!Directory::exists($rootControllerPath)) {
-            return new Router($routeRepository);
-        }
-
-        $lastUpdate = new Directory($rootControllerPath)->getLastModifiedTime();
-        if ($routeRepository->isCacheOutdated($lastUpdate)) {
-            Bootstrap::initializeControllerRoutes($routeRepository);
-            $routeRepository->cache();
-        } else {
-            $routeRepository->initializeFromCache();
-        }
-        return new Router($routeRepository);
     }
 
     private function initializeRenderEngine(): void

@@ -15,6 +15,7 @@ use Zephyrus\Exceptions\Security\UnauthorizedAccessException;
 use Zephyrus\Network\Request;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router;
+use Zephyrus\Network\Router\RouteRepository;
 use Zephyrus\Network\ServerEnvironnement;
 use Zephyrus\Utilities\FileSystem\Directory;
 
@@ -22,6 +23,7 @@ class Kernel
 {
     private ServerEnvironnement $serverEnvironnement;
     private Request $request;
+    private Router $router;
 
     public function __construct()
     {
@@ -36,12 +38,28 @@ class Kernel
         }
         $this->serverEnvironnement = new ServerEnvironnement($_SERVER);
         $this->request = new Request($this->serverEnvironnement);
+        $this->router = $this->initializeRouter();
     }
 
-    public function run(Router $router): Response
+    public function getServerEnvironnement(): ServerEnvironnement
+    {
+        return $this->serverEnvironnement;
+    }
+
+    public function getRequest(): Request
+    {
+        return $this->request;
+    }
+
+    public function getRouter(): Router
+    {
+        return $this->router;
+    }
+
+    public function run(): Response
     {
         try {
-            return $router->resolve($this->request);
+            return $this->router->resolve($this->request);
         } catch (RouteMethodUnsupportedException $e) {
             return $this->handleUnsupportedMethod($e);
         } catch (RouteNotAcceptedException $e) {
@@ -59,16 +77,6 @@ class Kernel
         } catch (MissingCsrfException $e) {
             return $this->handleMissingCsrf($e);
         }
-    }
-
-    public function getRequest(): Request
-    {
-        return $this->request;
-    }
-
-    public function getServerEnvironnement(): ServerEnvironnement
-    {
-        return $this->serverEnvironnement;
     }
 
     /**
@@ -149,5 +157,23 @@ class Kernel
         foreach ($env as $item => $value) {
             define($item, $value);
         }
+    }
+
+    public function initializeRouter(): Router
+    {
+        $rootControllerPath = ROOT_DIR . '/app/Controllers';
+        $routeRepository = new RouteRepository();
+        if (!Directory::exists($rootControllerPath)) {
+            return new Router($routeRepository);
+        }
+
+        $lastUpdate = new Directory($rootControllerPath)->getLastModifiedTime();
+        if ($routeRepository->isCacheOutdated($lastUpdate)) {
+            Bootstrap::initializeControllerRoutes($routeRepository);
+            $routeRepository->cache();
+        } else {
+            $routeRepository->initializeFromCache();
+        }
+        return new Router($routeRepository);
     }
 }
