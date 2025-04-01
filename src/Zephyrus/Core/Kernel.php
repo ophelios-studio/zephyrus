@@ -21,9 +21,9 @@ use Zephyrus\Utilities\FileSystem\Directory;
 
 class Kernel
 {
-    private ServerEnvironnement $serverEnvironnement;
-    private Request $request;
-    private Router $router;
+    protected ServerEnvironnement $serverEnvironnement;
+    protected Request $request;
+    protected Router $router;
 
     public function __construct(string $applicationClass = Application::class)
     {
