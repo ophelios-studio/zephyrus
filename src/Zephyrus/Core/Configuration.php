@@ -2,6 +2,7 @@
 
 use RuntimeException;
 use Zephyrus\Core\Configuration\ConfigurationFile;
+use Zephyrus\Core\Configuration\LocalizationConfiguration;
 use Zephyrus\Core\Configuration\Security\SecurityConfiguration;
 use Zephyrus\Core\Configuration\SessionConfiguration;
 use Zephyrus\Exceptions\Session\SessionLifetimeException;
@@ -56,10 +57,10 @@ class Configuration
         return ($property) ? $configs[$property] ?? $defaultValue : $configs;
     }
 
-    public static function getLocale(?string $property = null, mixed $defaultValue = null): mixed
+    public static function getLocale(): LocalizationConfiguration
     {
-        $configs = self::read('locale');
-        return ($property) ? $configs[$property] ?? $defaultValue : $configs;
+        return new LocalizationConfiguration(self::read('locale',
+            LocalizationConfiguration::DEFAULT_CONFIGURATIONS));
     }
 
     public static function getMailer(?string $property = null, mixed $defaultValue = null): mixed
@@ -83,14 +84,14 @@ class Configuration
      */
     public static function getSession(): SessionConfiguration
     {
-        return new SessionConfiguration(self::read('session')
-            ?? SessionConfiguration::DEFAULT_CONFIGURATIONS);
+        return new SessionConfiguration(self::read('session',
+            SessionConfiguration::DEFAULT_CONFIGURATIONS));
     }
 
     public static function getSecurity(): SecurityConfiguration
     {
-        return new SecurityConfiguration(self::read('security')
-            ?? SecurityConfiguration::DEFAULT_CONFIGURATIONS);
+        return new SecurityConfiguration(self::read('security',
+            SecurityConfiguration::DEFAULT_CONFIGURATIONS));
     }
 
     /**

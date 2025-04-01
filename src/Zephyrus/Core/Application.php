@@ -4,7 +4,6 @@ use RuntimeException;
 use stdClass;
 use Zephyrus\Application\Bootstrap;
 use Zephyrus\Application\Localization;
-use Zephyrus\Application\LocalizationConfiguration;
 use Zephyrus\Application\Views\LatteEngine;
 use Zephyrus\Application\Views\PhpEngine;
 use Zephyrus\Application\Views\RenderEngine;
@@ -40,12 +39,12 @@ class Application
 
     /**
      * @throws SessionException
+     * @throws LocalizationException
      */
     public static function initiate(Request $request): Router
     {
         self::$instance = new self();
         self::$instance->request = $request;
-        self::$instance->initializeNativeHelpers();
         self::$instance->initializeSession();
         self::$instance->initializeLocalization();
         return self::$instance->initializeRouter();
@@ -125,22 +124,6 @@ class Application
         return $this->session;
     }
 
-    public function getGitVersion(): string
-    {
-        $version = 'dev:nogit';
-        if (file_exists(ROOT_DIR . "/.git")) {
-            $version = shell_exec("git describe --tags");
-            if (is_null($version)) { // Get revision commit if no tag exists
-                $version = 'dev:' . shell_exec("git rev-parse --short HEAD");
-            }
-            if (str_contains($version, '-')) {
-                $version = 'dev:' . $version;
-            }
-            $version = trim($version);
-        }
-        return $version;
-    }
-
     /**
      * @throws SessionDatabaseStructureException
      * @throws SessionDatabaseTableException
@@ -161,23 +144,16 @@ class Application
         $this->session = new Session(Configuration::getSession());
     }
 
+    /**
+     * @throws LocalizationException
+     */
     protected function initializeLocalization(): void
     {
-        try {
-            $configuration = new LocalizationConfiguration(Configuration::getLocale());
-            $this->localization = new Localization($configuration);
-            $this->localization->start();
-        } catch (LocalizationException $e) {
-            // If engine cannot properly start an exception will be thrown and must be corrected
-            // to use this feature. Common errors are syntax error in json files. The exception
-            // messages should be explicit enough.
-            die($e->getMessage());
-        }
-    }
-
-    protected function initializeNativeHelpers(): void
-    {
-        require_once(Bootstrap::getHelperFunctionsPath());
+        // If engine cannot properly start an exception will be thrown and must be corrected
+        // to use this feature. Common errors are syntax error in json files. The exception
+        // messages should be explicit enough.
+        $this->localization = new Localization(Configuration::getLocale());
+        $this->localization->start();
     }
 
     protected function initializeRouter(): Router
@@ -188,7 +164,7 @@ class Application
             return new Router($routeRepository);
         }
 
-        $lastUpdate = (new Directory($rootControllerPath))->getLastModifiedTime();
+        $lastUpdate = new Directory($rootControllerPath)->getLastModifiedTime();
         if ($routeRepository->isCacheOutdated($lastUpdate)) {
             Bootstrap::initializeControllerRoutes($routeRepository);
             $routeRepository->cache();
