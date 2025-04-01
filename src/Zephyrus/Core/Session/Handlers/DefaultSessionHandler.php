@@ -7,19 +7,14 @@ use Zephyrus\Utilities\FileSystem\Directory;
 
 class DefaultSessionHandler extends SessionHandler
 {
-    /**
-     * @throws SessionPathNotWritableException
-     * @throws SessionPathNotExistException
-     */
     public function open(string $path, string $name): bool
     {
-        $this->isAvailable($path);
         return parent::open($path, $name);
     }
 
     public function close(): bool
     {
-        return true;
+        return parent::close();
     }
 
     /**
