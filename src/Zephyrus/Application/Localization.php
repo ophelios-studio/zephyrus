@@ -2,6 +2,7 @@
 
 use Locale;
 use stdClass;
+use Zephyrus\Core\Configuration\LocalizationConfiguration;
 use Zephyrus\Exceptions\LocalizationException;
 use Zephyrus\Utilities\FileSystem\Directory;
 use Zephyrus\Utilities\Formatter;
