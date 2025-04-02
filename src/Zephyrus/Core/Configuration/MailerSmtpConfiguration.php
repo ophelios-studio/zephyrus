@@ -1,18 +1,18 @@
-<?php namespace Zephyrus\Application\Mailer;
+<?php namespace Zephyrus\Core\Configuration;
 
 use Zephyrus\Exceptions\Mailer\MailerSmtpEncryptionException;
 use Zephyrus\Exceptions\Mailer\MailerSmtpPortException;
 
 class MailerSmtpConfiguration
 {
-    public const DEFAULT_CONFIGURATIONS = [
+    public const array DEFAULT_CONFIGURATIONS = [
         'host' => '', // SMTP server to send through (e.g. smtp.example.com)
         'port' => 465, // TCP port to connect to; use 587 if you have set encryption to 'tls'
         'encryption' => 'ssl', // Encryption algorithm to use (none | ssl | tls)
         'username' => '', // SMTP username
         'password' => '', // SMTP password
         'debug' => false, // Use setting SMTPDebug=2 of PHPMailer for verbose debugging
-        'allow_self_signed' => true, // SSL configuration to allow self signed
+        'allow_self_signed' => true, // SSL configuration to allow self-signed
         'verify_peer' => false // SSL configuration to ignore peer verification
     ];
 
