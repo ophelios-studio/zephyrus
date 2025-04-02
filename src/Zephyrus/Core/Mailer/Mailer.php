@@ -7,6 +7,7 @@ use Zephyrus\Core\Configuration\MailerConfiguration;
 use Zephyrus\Exceptions\Mailer\MailerAttachmentNotFoundException;
 use Zephyrus\Exceptions\Mailer\MailerException;
 use Zephyrus\Exceptions\Mailer\MailerInvalidAddressException;
+use Zephyrus\Network\ResponseBuilder;
 use Zephyrus\Utilities\FileSystem\File;
 
 class Mailer
@@ -34,6 +35,17 @@ class Mailer
     public function getPhpMailer(): PHPMailer
     {
         return $this->phpMailer;
+    }
+
+    public function setTemplate(string $template, array $data = []): void
+    {
+        $this->setBody($this->makeHtmlBody($template, $data));
+    }
+
+    private function makeHtmlBody(string $template, array $data = []): string
+    {
+        $response = new ResponseBuilder()->render($template, $data);
+        return $response->getContent();
     }
 
     /**
