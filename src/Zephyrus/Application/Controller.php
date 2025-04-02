@@ -78,7 +78,6 @@ abstract class Controller
             $content = $this->request->getCsrfGuard()->injectForms($response->getContent());
             $response->setContent($content);
         }
-        $this->request->addToHistory();
         $this->setupSecurityHeaders($response->getSecureHeader());
         return $response;
     }

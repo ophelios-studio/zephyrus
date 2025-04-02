@@ -1,7 +1,7 @@
 <?php namespace Zephyrus\Tests\Database\Core;
 
 use Zephyrus\Application\Localization;
-use Zephyrus\Application\LocalizationConfiguration;
+use Zephyrus\Core\Configuration\LocalizationConfiguration;
 use Zephyrus\Database\Core\Database;
 use Zephyrus\Exceptions\DatabaseException;
 use Zephyrus\Exceptions\FatalDatabaseException;

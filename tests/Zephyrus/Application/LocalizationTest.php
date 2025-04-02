@@ -3,8 +3,7 @@
 use PHPUnit\Framework\TestCase;
 use Zephyrus\Application\Configuration;
 use Zephyrus\Application\Localization;
-use Zephyrus\Application\LocalizationConfiguration;
-use Zephyrus\Core\Application;
+use Zephyrus\Core\Configuration\LocalizationConfiguration;
 use Zephyrus\Exceptions\LocalizationException;
 
 class LocalizationTest extends TestCase

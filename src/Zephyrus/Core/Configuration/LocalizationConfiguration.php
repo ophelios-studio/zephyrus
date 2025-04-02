@@ -1,4 +1,4 @@
-<?php namespace Zephyrus\Application;
+<?php namespace Zephyrus\Core\Configuration;
 
 class LocalizationConfiguration
 {

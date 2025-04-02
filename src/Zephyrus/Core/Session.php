@@ -1,20 +1,21 @@
 <?php namespace Zephyrus\Core;
 
-use Zephyrus\Core\Session\SessionConfiguration;
+use SessionHandlerInterface;
+use Zephyrus\Core\Configuration\SessionConfiguration;
+use Zephyrus\Core\Session\Handlers\DatabaseSessionHandler;
+use Zephyrus\Core\Session\Handlers\DefaultSessionHandler;
+use Zephyrus\Core\Session\Handlers\EncryptedDatabaseSessionHandler;
+use Zephyrus\Core\Session\Handlers\EncryptedDefaultSessionHandler;
 use Zephyrus\Core\Session\SessionFingerprintManager;
 use Zephyrus\Core\Session\SessionIdentifierManager;
+use Zephyrus\Database\DatabaseSession;
 use Zephyrus\Exceptions\Session\SessionDatabaseStructureException;
 use Zephyrus\Exceptions\Session\SessionDatabaseTableException;
 use Zephyrus\Exceptions\Session\SessionDisabledException;
 use Zephyrus\Exceptions\Session\SessionFingerprintException;
 use Zephyrus\Exceptions\Session\SessionHttpOnlyCookieException;
-use Zephyrus\Exceptions\Session\SessionLifetimeException;
 use Zephyrus\Exceptions\Session\SessionPathNotExistException;
 use Zephyrus\Exceptions\Session\SessionPathNotWritableException;
-use Zephyrus\Exceptions\Session\SessionRefreshRateException;
-use Zephyrus\Exceptions\Session\SessionRefreshRateProbabilityException;
-use Zephyrus\Exceptions\Session\SessionStorageModeException;
-use Zephyrus\Exceptions\Session\SessionSupportedRefreshModeException;
 use Zephyrus\Exceptions\Session\SessionUseOnlyCookiesException;
 use Zephyrus\Network\Request;
 use Zephyrus\Utilities\FileSystem\File;
@@ -25,79 +26,7 @@ class Session
     private SessionConfiguration $configuration;
     private SessionFingerprintManager $fingerprintManager;
     private SessionIdentifierManager $identifierManager;
-
-    /**
-     * @param array $configurations
-     * @throws SessionDisabledException
-     * @throws SessionHttpOnlyCookieException
-     * @throws SessionRefreshRateException
-     * @throws SessionRefreshRateProbabilityException
-     * @throws SessionSupportedRefreshModeException
-     * @throws SessionUseOnlyCookiesException
-     * @throws SessionDatabaseStructureException
-     * @throws SessionDatabaseTableException
-     * @throws SessionLifetimeException
-     * @throws SessionPathNotExistException
-     * @throws SessionPathNotWritableException
-     * @throws SessionStorageModeException
-     */
-    public function __construct(array $configurations = SessionConfiguration::DEFAULT_CONFIGURATIONS)
-    {
-        // @codeCoverageIgnoreStart
-        if (session_status() == PHP_SESSION_DISABLED) {
-            throw new SessionDisabledException();
-        }
-        // @codeCoverageIgnoreEnd
-
-        if (!ini_get('session.use_only_cookies')) {
-            throw new SessionUseOnlyCookiesException();
-        }
-
-        if (!ini_get('session.cookie_httponly')) {
-            throw new SessionHttpOnlyCookieException();
-        }
-
-        $this->configuration = new SessionConfiguration($configurations);
-        $this->configuration->configure();
-        $this->fingerprintManager = $this->configuration->buildFingerprint();
-        $this->identifierManager = $this->configuration->buildIdentifier();
-    }
-
-    public function setRequest(Request $request): void
-    {
-        $this->request = $request;
-    }
-
-    /**
-     * @throws SessionFingerprintException
-     */
-    public function start(): string
-    {
-        if (session_status() != PHP_SESSION_ACTIVE) {
-            $this->identifierManager->configure();
-            $this->fingerprintManager->start($this->request);
-        }
-        if ($this->fingerprintManager->isInitiated() && !$this->fingerprintManager->isValid($this->request)) {
-            throw new SessionFingerprintException();
-        }
-        if ($this->identifierManager->isObsolete()) {
-            $this->regenerate();
-        }
-        return $this->identifierManager->getId();
-    }
-
-    /**
-     * Regenerates a session identifier for the current user session and deletes old session file. Useful to prevent
-     * some form of session hijacking. Works automatically with the session refresher configurations (refresh_mode and
-     * refresh_rate).
-     *
-     * @return string
-     */
-    public function regenerate(): string
-    {
-        session_regenerate_id(true);
-        return session_id();
-    }
+    private SessionHandlerInterface $sessionHandler;
 
     /**
      * Properly delete the entire session including the cookie expiration and all saved session data.
@@ -108,18 +37,6 @@ class Session
         setcookie(session_name(), '', 1);
         unset($_COOKIE[session_name()]);
         @session_destroy();
-    }
-
-    /**
-     * Restart the entire session by regenerating the identifier and deleting all data.
-     *
-     * @return string
-     */
-    public function restart(): string
-    {
-        $this->destroy();
-        $this->start();
-        return session_id();
     }
 
     /**
@@ -227,6 +144,76 @@ class Session
     }
 
     /**
+     * @param SessionConfiguration $configuration
+     * @param Request|null $request
+     * @throws SessionDatabaseStructureException
+     * @throws SessionDatabaseTableException
+     * @throws SessionDisabledException
+     * @throws SessionHttpOnlyCookieException
+     * @throws SessionPathNotExistException
+     * @throws SessionPathNotWritableException
+     * @throws SessionUseOnlyCookiesException
+     * @throws SessionFingerprintException
+     */
+    public function __construct(SessionConfiguration $configuration, ?Request $request = null)
+    {
+        $this->configuration = $configuration;
+        $this->request = $request;
+        if ($this->configuration->isEnabled()) {
+            // @codeCoverageIgnoreStart
+            if (session_status() == PHP_SESSION_DISABLED) {
+                throw new SessionDisabledException();
+            }
+            // @codeCoverageIgnoreEnd
+            if (!ini_get('session.use_only_cookies')) {
+                throw new SessionUseOnlyCookiesException();
+            }
+
+            if (!ini_get('session.cookie_httponly')) {
+                throw new SessionHttpOnlyCookieException();
+            }
+            $this->initialize();
+            if ($this->configuration->isAutoStart()) {
+                $this->start();
+            }
+        }
+    }
+
+    /**
+     * @throws SessionFingerprintException
+     */
+    public function start(): ?string
+    {
+        if ($this->configuration->isEnabled()) {
+            if (session_status() != PHP_SESSION_ACTIVE) {
+                $this->identifierManager->configure();
+                $this->fingerprintManager->start($this->request);
+            }
+            if ($this->fingerprintManager->isInitiated() && !$this->fingerprintManager->isValid($this->request)) {
+                throw new SessionFingerprintException();
+            }
+            if ($this->identifierManager->isObsolete()) {
+                $this->regenerate();
+            }
+            return $this->identifierManager->getId();
+        }
+        return null;
+    }
+
+    /**
+     * Restart the entire session by regenerating the identifier and deleting all data.
+     *
+     * @return string
+     * @throws SessionFingerprintException
+     */
+    public function restart(): string
+    {
+        $this->destroy();
+        $this->start();
+        return session_id();
+    }
+
+    /**
      * Empty all the session variables.
      *
      * @return void
@@ -280,5 +267,116 @@ class Session
             return null;
         }
         return new File($path . '/sess_' . session_id());
+    }
+
+    /**
+     * Regenerates a session identifier for the current user session and deletes old session file. Useful to prevent
+     * some form of session hijacking. Works automatically with the session refresher configurations (refresh_mode and
+     * refresh_rate).
+     *
+     * @return string
+     */
+    public function regenerate(): string
+    {
+        session_regenerate_id(true);
+        return session_id();
+    }
+
+    /**
+     * @throws SessionDatabaseStructureException
+     * @throws SessionPathNotExistException
+     * @throws SessionPathNotWritableException
+     * @throws SessionDatabaseTableException
+     */
+    private function initialize(): void
+    {
+        $this->initializeHandler();
+        $this->initializeCookie();
+        $this->initializeLifeTime();
+        $this->initializeFingerprint();
+        $this->initializeIdentifier();
+    }
+
+    /**
+     * @throws SessionDatabaseStructureException
+     * @throws SessionDatabaseTableException
+     * @throws SessionPathNotExistException
+     * @throws SessionPathNotWritableException
+     */
+    private function initializeHandler(): void
+    {
+        match ($this->configuration->getStorage()) {
+            'file' => self::initializeFileHandler(),
+            'database' => self::initializeDatabaseHandler()
+        };
+        session_set_save_handler($this->sessionHandler, true);
+    }
+
+    private function initializeLifeTime(): void
+    {
+        ini_set('session.gc_maxlifetime', $this->configuration->getLifetime());
+        ini_set('session.gc_probability', 1); // Debian usage
+        ini_set('session.gc_divisor', 100);
+    }
+
+    private function initializeCookie(): void
+    {
+        session_set_cookie_params([
+            'lifetime' => $this->configuration->getLifetime(),
+            'secure' => $_SERVER['HTTPS'] ?? false,
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
+        session_name($this->configuration->getName());
+    }
+
+    /**
+     * @throws SessionPathNotWritableException
+     * @throws SessionPathNotExistException
+     */
+    private function initializeFileHandler(): void
+    {
+        $savePath = $this->configuration->getSavePath();
+        if (empty($savePath)) {
+            $savePath = $this->getSystemSavePath();
+        }
+        $this->sessionHandler = $this->configuration->isEncrypted()
+            ? new EncryptedDefaultSessionHandler()
+            : new DefaultSessionHandler();
+        if ($this->sessionHandler->isAvailable($savePath)) {
+            session_save_path($savePath);
+        }
+    }
+
+    /**
+     * @throws SessionDatabaseStructureException
+     * @throws SessionDatabaseTableException
+     */
+    private function initializeDatabaseHandler(): void
+    {
+        $database = DatabaseSession::getInstance()->getDatabase();
+        $table = $this->configuration->getTable();
+        session_save_path(""); // Do not use for database ...
+        $this->sessionHandler = $this->configuration->isEncrypted() ?
+            new EncryptedDatabaseSessionHandler($database, $table) :
+            new DatabaseSessionHandler($database, $table);
+        $this->sessionHandler->isAvailable();
+    }
+
+    private function initializeIdentifier(): void
+    {
+        $this->identifierManager = new SessionIdentifierManager($this->configuration->getRefreshMode(),
+            $this->configuration->getRefreshRate());
+    }
+
+    private function initializeFingerprint(): void
+    {
+        $this->fingerprintManager = new SessionFingerprintManager($this->configuration->isUserAgentFingerprintEnabled(),
+            $this->configuration->isIpFingerprintEnabled());
+    }
+
+    private function getSystemSavePath(): string
+    {
+        return !empty(session_save_path()) ? session_save_path() : sys_get_temp_dir();
     }
 }

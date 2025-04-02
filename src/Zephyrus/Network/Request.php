@@ -10,7 +10,6 @@ use Zephyrus\Network\Request\CookieJar;
 use Zephyrus\Network\Request\QueryString;
 use Zephyrus\Network\Request\RequestAccept;
 use Zephyrus\Network\Request\RequestBody;
-use Zephyrus\Network\Request\RequestHistory;
 use Zephyrus\Network\Router\RouteDefinition;
 use Zephyrus\Security\AuthorizationGuard;
 use Zephyrus\Security\CsrfGuard;
@@ -22,7 +21,6 @@ class Request
     private Url $url;
     private RequestBody $body;
     private RequestAccept $accept;
-    private RequestHistory $history;
     private QueryString $queryString;
     private ?RouteDefinition $routeDefinition = null; // Exists only when the route is found in the repository ...
     private CookieJar $cookieJar;
@@ -41,7 +39,6 @@ class Request
         $this->intrusionDetection = new IntrusionDetection($this, Configuration::getSecurity('ids'));
         $this->csrfGuard = new CsrfGuard($this, Configuration::getSecurity('csrf'));
         $this->authorizationGuard = new AuthorizationGuard($this);
-        $this->history = new RequestHistory();
     }
 
     /**
@@ -160,15 +157,9 @@ class Request
         return $this->environnement->getUserAgent();
     }
 
-    /**
-     * Returns only the last recorded visited GET route the client did within his active session. Should be considered
-     * for returning to the previous visited URL.
-     *
-     * @return string
-     */
     public function getReferer(): string
     {
-        return $this->history->getReferer();
+        return $this->environnement->getReferer();
     }
 
     /**
@@ -238,19 +229,6 @@ class Request
     public function getCsrfGuard(): CsrfGuard
     {
         return $this->csrfGuard;
-    }
-
-    public function getHistory(): RequestHistory
-    {
-        return $this->history;
-    }
-
-    /**
-     * Records the request into the client session history.
-     */
-    public function addToHistory(): void
-    {
-        $this->history->add($this);
     }
 
     public function getFiles(): array

@@ -44,21 +44,11 @@ class DatabaseSessionHandler extends SessionHandler
         return true;
     }
 
-    public function close(): bool
-    {
-        return true;
-    }
-
     public function gc(int $max_lifetime): int
     {
         $old = time() - $max_lifetime;
         $statement = $this->database->query("DELETE FROM $this->table WHERE access < ?", [$old]);
         return $statement->count();
-    }
-
-    public function open(string $path, string $name): bool
-    {
-        return $this->isAvailable();
     }
 
     public function read(string $id): string
