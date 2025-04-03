@@ -2,6 +2,7 @@
 
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use Zephyrus\Core\Configuration\Security\IdsConfiguration;
 use Zephyrus\Exceptions\Security\IntrusionDetectionException;
 use Zephyrus\Security\IntrusionDetection;
 use Zephyrus\Tests\RequestUtility;
@@ -11,7 +12,7 @@ class IntrusionDetectionTest extends TestCase
     public function testWorking()
     {
         $request = RequestUtility::get("/?test=5");
-        $ids = new IntrusionDetection($request);
+        $ids = new IntrusionDetection($request, new IdsConfiguration(['enabled' => true]));
         $ids->run();
         self::assertEquals("5", $request->getParameter('test'));
     }
@@ -19,7 +20,7 @@ class IntrusionDetectionTest extends TestCase
     public function testWorkingWithArray()
     {
         $request = RequestUtility::get("/?test[]=3&test[]=4");
-        $ids = new IntrusionDetection($request);
+        $ids = new IntrusionDetection($request, new IdsConfiguration(['enabled' => true]));
         $ids->run();
         self::assertEquals("3", $request->getParameter('test')[0]);
     }
@@ -28,7 +29,7 @@ class IntrusionDetectionTest extends TestCase
     {
         $this->expectException(IntrusionDetectionException::class);
         $request = RequestUtility::get("/?test=' AND 1=1#");
-        $ids = new IntrusionDetection($request);
+        $ids = new IntrusionDetection($request, new IdsConfiguration(['enabled' => true]));
         $ids->run();
     }
 
@@ -36,14 +37,14 @@ class IntrusionDetectionTest extends TestCase
     {
         $this->expectException(IntrusionDetectionException::class);
         $request = RequestUtility::get("/?test[]=3&test[]=4&test[]=' AND 1=1#");
-        $ids = new IntrusionDetection($request);
+        $ids = new IntrusionDetection($request, new IdsConfiguration(['enabled' => true]));
         $ids->run();
     }
 
     public function testDetectionInjectionKeys()
     {
         $request = RequestUtility::get("/?test[]=3&test[]=4&test[]=' AND 1=1#");
-        $ids = new IntrusionDetection($request);
+        $ids = new IntrusionDetection($request, new IdsConfiguration(['enabled' => true]));
         try {
             $ids->run();
         } catch (IntrusionDetectionException $e) {
@@ -55,7 +56,7 @@ class IntrusionDetectionTest extends TestCase
     public function testDetectionInjectionKeys2()
     {
         $request = RequestUtility::get("/?test[]=3&test[]=4&test[bob]=' AND 1=1#");
-        $ids = new IntrusionDetection($request);
+        $ids = new IntrusionDetection($request, new IdsConfiguration(['enabled' => true]));
         try {
             $ids->run();
         } catch (IntrusionDetectionException $e) {
@@ -68,14 +69,14 @@ class IntrusionDetectionTest extends TestCase
     {
         $this->expectException(IntrusionDetectionException::class);
         $request = RequestUtility::get("/?test[]=3&test[]=4&test[greetings][]=hello&test[greetings][]=' AND 1=1#");
-        $ids = new IntrusionDetection($request);
+        $ids = new IntrusionDetection($request, new IdsConfiguration(['enabled' => true]));
         $ids->run();
     }
 
     public function testDetectionInjectionWithUrl()
     {
         $request = RequestUtility::get("/<script>alert(document.cookie);</script>");
-        $ids = new IntrusionDetection($request);
+        $ids = new IntrusionDetection($request, new IdsConfiguration());
         try {
             $ids->run();
         } catch (IntrusionDetectionException $e) {
@@ -87,7 +88,7 @@ class IntrusionDetectionTest extends TestCase
     public function testDetectionExceptionData()
     {
         $request = RequestUtility::get("/?test=' AND 1=1#");
-        $ids = new IntrusionDetection($request);
+        $ids = new IntrusionDetection($request, new IdsConfiguration(['enabled' => true]));
         try {
             $ids->run();
         } catch (IntrusionDetectionException $e) {
@@ -100,13 +101,12 @@ class IntrusionDetectionTest extends TestCase
     public function testImpactThreshold()
     {
         $request = RequestUtility::get("/?test=' AND 1=1#");
-        $ids = new IntrusionDetection($request, [
+        $ids = new IntrusionDetection($request, new IdsConfiguration([
             'enabled' => true,
-            'cached' => true,
             'impact_threshold' => 25,
             'monitor_cookies' => true,
             'exceptions' => []
-        ]);
+        ]));
         $ids->run();
         self::assertEquals(21, $ids->getReport()->getImpact());
     }
@@ -115,25 +115,10 @@ class IntrusionDetectionTest extends TestCase
     {
         $this->expectException(RuntimeException::class);
         $request = RequestUtility::get("/?test=' AND 1=1#");
-        $ids = new IntrusionDetection($request, [
+        $ids = new IntrusionDetection($request, new IdsConfiguration([
             'impact_threshold' => "oups"
-        ]);
+        ]));
         $ids->run();
         self::assertEquals(3, $ids->getReport()->getImpact());
-    }
-
-    public function testNoCache()
-    {
-        $request = RequestUtility::get("/?test=' AND 1=1#");
-        $ids = new IntrusionDetection($request, [
-            'cached' => false
-        ]);
-        try {
-            $ids->run();
-        } catch (IntrusionDetectionException $e) {
-            self::assertEquals(21, $e->getImpact());
-            self::assertEquals("Detects chained SQL injection attempts 2/2", $e->getDetectedIntrusions()[0]->description);
-            self::assertTrue($e->getReport()->getExecutionTime() > 0.0);
-        }
     }
 }

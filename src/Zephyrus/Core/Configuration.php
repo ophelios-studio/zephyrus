@@ -3,6 +3,7 @@
 use RuntimeException;
 use Zephyrus\Core\Configuration\ConfigurationFile;
 use Zephyrus\Core\Configuration\LocalizationConfiguration;
+use Zephyrus\Core\Configuration\Mailer\MailerConfiguration;
 use Zephyrus\Core\Configuration\Security\SecurityConfiguration;
 use Zephyrus\Core\Configuration\SessionConfiguration;
 use Zephyrus\Exceptions\Session\SessionLifetimeException;
@@ -63,10 +64,10 @@ class Configuration
             LocalizationConfiguration::DEFAULT_CONFIGURATIONS));
     }
 
-    public static function getMailer(?string $property = null, mixed $defaultValue = null): mixed
+    public static function getMailer(): MailerConfiguration
     {
-        $configs = self::read('mailer');
-        return ($property) ? $configs[$property] ?? $defaultValue : $configs;
+        return new MailerConfiguration(self::read('mailer',
+            MailerConfiguration::DEFAULT_CONFIGURATIONS));
     }
 
     public static function getDatabase(?string $property = null, mixed $defaultValue = null): mixed

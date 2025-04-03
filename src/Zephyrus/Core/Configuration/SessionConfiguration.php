@@ -7,12 +7,12 @@ use Zephyrus\Exceptions\Session\SessionRefreshRateProbabilityException;
 use Zephyrus\Exceptions\Session\SessionStorageModeException;
 use Zephyrus\Exceptions\Session\SessionSupportedRefreshModeException;
 
-class SessionConfiguration
+class SessionConfiguration extends Configuration
 {
-    public const DEFAULT_DATABASE_TABLE = 'public.session';
-    public const DEFAULT_LIFETIME = 1440; // 24 minutes
+    public const string DEFAULT_DATABASE_TABLE = 'public.session';
+    public const int DEFAULT_LIFETIME = 1440; // 24 minutes
 
-    public const DEFAULT_CONFIGURATIONS = [
+    public const array DEFAULT_CONFIGURATIONS = [
         'enabled' => true, // Enable the whole session engine (should be false for API)
         'auto_start' => false, // Automatically start the session when the object is built. Else will need manual stating.
         'name' => '', // Name of the session cookie (empty means php.ini defaults)
@@ -27,7 +27,6 @@ class SessionConfiguration
         'refresh_rate' => 0 // For probability (0-100), interval (nb of seconds), request (nb of requests)
     ];
 
-    private array $configurations;
     private bool $enabled;
     private bool $autoStart;
     private string $name;
@@ -50,7 +49,7 @@ class SessionConfiguration
      */
     public function __construct(array $configurations = self::DEFAULT_CONFIGURATIONS)
     {
-        $this->initializeConfigurations($configurations);
+        parent::__construct($configurations);
         $this->initializeEnabled();
         $this->initializeName();
         $this->initializeLifetime();
@@ -121,11 +120,6 @@ class SessionConfiguration
     public function getRefreshRate(): int
     {
         return $this->refreshRate;
-    }
-
-    private function initializeConfigurations(array $configurations): void
-    {
-        $this->configurations = $configurations;
     }
 
     private function initializeEnabled(): void

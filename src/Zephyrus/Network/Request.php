@@ -1,6 +1,6 @@
 <?php namespace Zephyrus\Network;
 
-use Zephyrus\Application\Configuration;
+use Zephyrus\Core\Configuration;
 use Zephyrus\Exceptions\RouteMethodUnsupportedException;
 use Zephyrus\Exceptions\Security\IntrusionDetectionException;
 use Zephyrus\Exceptions\Security\InvalidCsrfException;
@@ -30,14 +30,15 @@ class Request
 
     public function __construct(ServerEnvironnement $environnement)
     {
+        $securityConfiguration = Configuration::getSecurity();
         $this->environnement = $environnement;
         $this->url = new Url($environnement->getRequestedUrl());
         $this->queryString = $this->url->buildQueryString();
         $this->body = new RequestBody($environnement->getRawData(), $environnement->getContentType());
         $this->accept = new RequestAccept($environnement->getAccept());
         $this->cookieJar = new CookieJar($environnement->getCookies());
-        $this->intrusionDetection = new IntrusionDetection($this, Configuration::getSecurity('ids'));
-        $this->csrfGuard = new CsrfGuard($this, Configuration::getSecurity('csrf'));
+        $this->intrusionDetection = new IntrusionDetection($this, $securityConfiguration->getIdsConfiguration());
+        $this->csrfGuard = new CsrfGuard($this, $securityConfiguration->getCsrfConfiguration());
         $this->authorizationGuard = new AuthorizationGuard($this);
     }
 

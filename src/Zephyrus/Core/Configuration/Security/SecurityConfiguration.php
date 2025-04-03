@@ -1,6 +1,8 @@
 <?php namespace Zephyrus\Core\Configuration\Security;
 
-class SecurityConfiguration
+use Zephyrus\Core\Configuration\Configuration;
+
+class SecurityConfiguration extends Configuration
 {
     public const array DEFAULT_CONFIGURATIONS = [
         'password' => PasswordConfiguration::DEFAULT_CONFIGURATIONS,
@@ -9,7 +11,6 @@ class SecurityConfiguration
         'ids' => IdsConfiguration::DEFAULT_CONFIGURATIONS
     ];
 
-    private array $configurations;
     private PasswordConfiguration $passwordConfiguration;
     private EncryptionConfiguration $encryptionConfiguration;
     private CsrfConfiguration $csrfConfiguration;
@@ -17,7 +18,7 @@ class SecurityConfiguration
 
     public function __construct(array $configurations = self::DEFAULT_CONFIGURATIONS)
     {
-        $this->initializeConfigurations($configurations);
+        parent::__construct($configurations);
         $this->initializePasswordConfigurations();
         $this->initializeEncryptionConfigurations();
         $this->initializeCsrfConfigurations();
@@ -42,11 +43,6 @@ class SecurityConfiguration
     public function getIdsConfiguration(): IdsConfiguration
     {
         return $this->idsConfiguration;
-    }
-
-    private function initializeConfigurations(array $configurations): void
-    {
-        $this->configurations = $configurations;
     }
 
     private function initializePasswordConfigurations(): void

@@ -1,30 +1,35 @@
-<?php namespace Zephyrus\Application\Mailer;
+<?php namespace Zephyrus\Core\Mailer;
 
 use InvalidArgumentException;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\PHPMailer;
+use Zephyrus\Core\Configuration\Mailer\MailerConfiguration;
 use Zephyrus\Exceptions\Mailer\MailerAttachmentNotFoundException;
 use Zephyrus\Exceptions\Mailer\MailerException;
 use Zephyrus\Exceptions\Mailer\MailerInvalidAddressException;
+use Zephyrus\Network\ResponseBuilder;
 use Zephyrus\Utilities\FileSystem\File;
 
 class Mailer
 {
     private PHPMailer $phpMailer;
-    private ?MailerSmtpConfiguration $smtpConfiguration;
+    private ?MailerService $service;
 
     /**
-     * If no MailerSmtpConfiguration is given, the class will make the raw email response available in send instead
-     * of sending the email through SMTP. Useful for alternate sending method such as AWS, MailGun or SendGrid.
+     * If no service is given, the class will make the raw email response available in send instead of sending the
+     * email through SMTP.
      *
-     * @param MailerSmtpConfiguration|null $configuration
+     * @param MailerConfiguration $configuration
      */
-    public function __construct(?MailerSmtpConfiguration $configuration)
+    public function __construct(MailerConfiguration $configuration)
     {
-        $this->smtpConfiguration = $configuration;
         $this->phpMailer = new PHPMailer(true);
         $this->phpMailer->CharSet = 'UTF-8';
-        $this->initializeSmtp();
+        $this->service = $configuration->buildService();
+        $this->service->initialize($this->phpMailer);
+        if ($configuration->getDefaultFromAddress()) {
+            $this->setFrom($configuration->getDefaultFromAddress(), $configuration->getDefaultFromName());
+        }
     }
 
     public function getPhpMailer(): PHPMailer
@@ -32,17 +37,28 @@ class Mailer
         return $this->phpMailer;
     }
 
+    public function setTemplate(string $template, array $data = []): void
+    {
+        $this->setBody($this->makeHtmlBody($template, $data));
+    }
+
+    private function makeHtmlBody(string $template, array $data = []): string
+    {
+        $response = new ResponseBuilder()->render($template, $data);
+        return $response->getContent();
+    }
+
     /**
      * Applies the FROM address and name for all emails built from this Mailer instance.
      *
      * @param string $email
-     * @param string $name
+     * @param string|null $name
      * @throws MailerInvalidAddressException
      */
-    public function setFrom(string $email, string $name): void
+    public function setFrom(string $email, ?string $name = null): void
     {
         try {
-            $this->phpMailer->setFrom($email, $name);
+            $this->phpMailer->setFrom($email, $name ?? '');
         } catch (Exception) {
             throw new MailerInvalidAddressException($email);
         }
@@ -53,12 +69,18 @@ class Mailer
      */
     public function send(bool $asHtml = true): string
     {
+        return $this->service?->send($this->phpMailer, $asHtml)
+            ?? $this->buildRawMimeMessage($asHtml);
+    }
+
+    /**
+     * @throws MailerException
+     */
+    public function buildRawMimeMessage(bool $asHtml = true): string
+    {
         $this->phpMailer->IsHTML($asHtml);
         try {
             $this->phpMailer->preSend();
-            if ($this->smtpConfiguration) {
-                $this->phpMailer->postSend();
-            }
         } catch (Exception $exception) {
             throw new MailerException($exception->getMessage());
         }
@@ -258,25 +280,6 @@ class Mailer
             );
         } catch (Exception $exception) {
             throw new MailerException($exception->getMessage());
-        }
-    }
-
-    private function initializeSmtp(): void
-    {
-        if ($this->smtpConfiguration) {
-            $this->phpMailer->isSMTP();
-            $this->phpMailer->Host = $this->smtpConfiguration->getHost();
-            $this->phpMailer->Port = $this->smtpConfiguration->getPort();
-            $this->phpMailer->SMTPAuth = $this->smtpConfiguration->hasAuthentication();
-            $this->phpMailer->Username = $this->smtpConfiguration->getUsername();
-            $this->phpMailer->Password = $this->smtpConfiguration->getPassword();
-            $this->phpMailer->SMTPOptions = $this->smtpConfiguration->getSslOptions();
-            if ($this->smtpConfiguration->getEncryption() != "none") {
-                $this->phpMailer->SMTPSecure = $this->smtpConfiguration->getEncryption();
-            }
-            if ($this->smtpConfiguration->isDebug()) {
-                $this->phpMailer->SMTPDebug = 2;
-            }
         }
     }
 }

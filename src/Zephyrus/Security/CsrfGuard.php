@@ -1,7 +1,6 @@
 <?php namespace Zephyrus\Security;
 
-use RuntimeException;
-use Zephyrus\Application\Configuration;
+use Zephyrus\Core\Configuration\Security\CsrfConfiguration;
 use Zephyrus\Core\Session;
 use Zephyrus\Exceptions\Security\InvalidCsrfException;
 use Zephyrus\Exceptions\Security\MissingCsrfException;
@@ -12,12 +11,6 @@ class CsrfGuard
     public const HEADER_TOKEN = 'HTTP_X_CSRF_TOKEN';
     public const REQUEST_TOKEN_VALUE = 'CSRFToken';
     public const TOKEN_LENGTH = 48;
-    public const DEFAULT_CONFIGURATIONS = [
-        'enabled' => true, // Enable the CSRF mitigation feature
-        'html_integration_enabled' => true, // Automatically insert needed HTML into forms
-        'guard_methods' => ['POST', 'PUT', 'DELETE', 'PATCH'], // List of guarded methods
-        'exceptions' => [] // List of route exceptions (e.g. ['\/test.*'] meaning all routes beginning with /test)
-    ];
 
     /**
      * Keeps a linked reference to the Request instance given in the constructor. Meaning that the request could evolve
@@ -26,46 +19,7 @@ class CsrfGuard
      * @var Request|null
      */
     private ?Request $request;
-
-    /**
-     * Determines the HTTP request methods that should be secured by the CSRF mitigation. It implies that for EVERY
-     * request of these types, the CSRF token should be provided. All forms should follow a strict REST philosophy
-     * meaning that all form processing should pass through POST, PUT, PATCH or DELETE only.
-     *
-     * @var array
-     */
-    private array $guardedMethods = ['POST', 'PUT', 'DELETE', 'PATCH'];
-
-    /**
-     * List of routes to ignore the CSRF mitigation no matter the HTTP method. Normally, all routes for the guarded
-     * HTTP methods should pass through the CSRF mitigation but, it may happen that some routes are exempt of
-     * mitigation. For such cases, the exceptions should be used. Accepts regex for the route definition.
-     *
-     * @var array
-     */
-    private array $exceptions = [];
-
-    /**
-     * Determines if the CSRF mitigation is active. Should be verified before calling the run method.
-     *
-     * @var bool
-     */
-    private bool $enabled = true;
-
-    /**
-     * Determines if the CSRF mitigation should inject the needed HTML fields automatically. Since every form will need
-     * proper inclusion of specific tokens, it is best to use the automatic integration.
-     *
-     * @var bool
-     */
-    private bool $htmlIntegrationEnabled = true;
-
-    /**
-     * Loaded configurations for the CSRF mitigation.
-     *
-     * @var array
-     */
-    private array $configurations;
+    private CsrfConfiguration $configuration;
 
     public static function generate(): string
     {
@@ -74,14 +28,10 @@ class CsrfGuard
         return $name . '$' . $token;
     }
 
-    public function __construct(?Request $request, array $configurations = [])
+    public function __construct(Request &$request, CsrfConfiguration $configuration)
     {
-        $this->request = $request;
-        $this->initializeConfigurations($configurations);
-        $this->initializeEnabledState();
-        $this->initializeAutomaticHtmlIntegration();
-        $this->initializeGuardedMethods();
-        $this->initializeExceptions();
+        $this->request = &$request;
+        $this->configuration = $configuration;
     }
 
     /**
@@ -92,7 +42,7 @@ class CsrfGuard
      */
     public function isEnabled(): bool
     {
-        return $this->enabled;
+        return $this->configuration->isEnabled();
     }
 
     /**
@@ -102,7 +52,7 @@ class CsrfGuard
      */
     public function isHtmlIntegrationEnabled(): bool
     {
-        return $this->htmlIntegrationEnabled;
+        return $this->configuration->isHtmlIntegrationEnabled();
     }
 
     /**
@@ -171,7 +121,7 @@ class CsrfGuard
      */
     public function isGetSecured(): bool
     {
-        return in_array('GET', $this->guardedMethods);
+        return in_array('GET', $this->configuration->getGuardedMethods());
     }
 
     /**
@@ -179,7 +129,7 @@ class CsrfGuard
      */
     public function isPostSecured(): bool
     {
-        return in_array('POST', $this->guardedMethods);
+        return in_array('POST', $this->configuration->getGuardedMethods());
     }
 
     /**
@@ -187,7 +137,7 @@ class CsrfGuard
      */
     public function isPutSecured(): bool
     {
-        return in_array('PUT', $this->guardedMethods);
+        return in_array('PUT', $this->configuration->getGuardedMethods());
     }
 
     /**
@@ -195,7 +145,7 @@ class CsrfGuard
      */
     public function isPatchSecured(): bool
     {
-        return in_array('PATCH', $this->guardedMethods);
+        return in_array('PATCH', $this->configuration->getGuardedMethods());
     }
 
     /**
@@ -203,7 +153,7 @@ class CsrfGuard
      */
     public function isDeleteSecured(): bool
     {
-        return in_array('DELETE', $this->guardedMethods);
+        return in_array('DELETE', $this->configuration->getGuardedMethods());
     }
 
     /**
@@ -217,7 +167,7 @@ class CsrfGuard
         if (!$this->isHttpMethodFiltered($this->request->getMethod()->value)) {
             return true;
         }
-        foreach ($this->exceptions as $exceptionRegex) {
+        foreach ($this->configuration->getExceptions() as $exceptionRegex) {
             if ($exceptionRegex === $this->request->getRoute()) {
                 return true;
             }
@@ -327,46 +277,5 @@ class CsrfGuard
             return true;
         }
         return false;
-    }
-
-    private function initializeConfigurations(array $configurations): void
-    {
-        if (empty($configurations)) {
-            $configurations = Configuration::getSecurity('csrf') ?? self::DEFAULT_CONFIGURATIONS;
-        }
-        $this->configurations = $configurations;
-    }
-
-    private function initializeEnabledState(): void
-    {
-        if (isset($this->configurations['enabled'])) {
-            $this->enabled = (bool) $this->configurations['enabled'];
-        }
-    }
-
-    private function initializeAutomaticHtmlIntegration(): void
-    {
-        if (isset($this->configurations['html_integration_enabled'])) {
-            $this->htmlIntegrationEnabled = $this->configurations['html_integration_enabled'];
-        }
-    }
-
-    private function initializeGuardedMethods(): void
-    {
-        if (isset($this->configurations['guard_methods'])) {
-            foreach ($this->configurations['guard_methods'] as $method) {
-                if (!in_array($method, ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])) {
-                    throw new RuntimeException("CSRF guard methods is invalid. Must be an array containing a combinaison of the following values 'GET', 'POST', 'PUT', 'PATCH', 'DELETE'. ");
-                }
-            }
-            $this->guardedMethods = $this->configurations['guard_methods'];
-        }
-    }
-
-    private function initializeExceptions(): void
-    {
-        if (isset($this->configurations['exceptions']) && !empty($this->configurations['exceptions'])) {
-            $this->exceptions = $this->configurations['exceptions'];
-        }
     }
 }
