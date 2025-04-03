@@ -19,7 +19,7 @@ class IdsConfiguration extends Configuration
     private array $exceptions;
     private bool $includeCookiesMonitoring;
     private bool $includeUrlMonitoring;
-    private string $customFile;
+    private ?string $customFile;
 
     public function __construct(array $configurations = self::DEFAULT_CONFIGURATIONS)
     {
