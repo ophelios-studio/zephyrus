@@ -7,10 +7,11 @@ class FormException extends ZephyrusRuntimeException
     private ?Form $failedForm;
     private ?string $redirectPath = null;
 
-    public function __construct(?Form $failedForm, ?string $message = null)
+    public function __construct(?Form $failedForm, ?string $redirectPath = null, ?string $message = null)
     {
         parent::__construct($message ?? 'Form validation failed.');
         $this->failedForm = $failedForm;
+        $this->redirectPath = $redirectPath;
     }
 
     public function setRedirectPath(string $redirectPath): void
