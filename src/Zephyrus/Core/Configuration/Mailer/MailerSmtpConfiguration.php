@@ -1,9 +1,10 @@
-<?php namespace Zephyrus\Core\Configuration;
+<?php namespace Zephyrus\Core\Configuration\Mailer;
 
+use Zephyrus\Core\Configuration\Configuration;
 use Zephyrus\Exceptions\Mailer\MailerSmtpEncryptionException;
 use Zephyrus\Exceptions\Mailer\MailerSmtpPortException;
 
-class MailerSmtpConfiguration
+class MailerSmtpConfiguration extends Configuration
 {
     public const array DEFAULT_CONFIGURATIONS = [
         'host' => '', // SMTP server to send through (e.g. smtp.example.com)
@@ -16,7 +17,6 @@ class MailerSmtpConfiguration
         'verify_peer' => false // SSL configuration to ignore peer verification
     ];
 
-    private array $configurations;
     private string $host;
     private int $port;
     private string $encryption;
@@ -31,7 +31,7 @@ class MailerSmtpConfiguration
      */
     public function __construct(array $configurations = self::DEFAULT_CONFIGURATIONS)
     {
-        $this->initializeConfigurations($configurations);
+        parent::__construct($configurations);
         $this->initializeHost();
         $this->initializeAuthentication();
         $this->initializeEncryption();
@@ -77,11 +77,6 @@ class MailerSmtpConfiguration
     public function getSslOptions(): array
     {
         return $this->sslOptions;
-    }
-
-    private function initializeConfigurations(array $configurations): void
-    {
-        $this->configurations = $configurations;
     }
 
     /**

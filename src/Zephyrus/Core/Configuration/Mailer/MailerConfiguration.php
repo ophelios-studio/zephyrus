@@ -1,11 +1,12 @@
-<?php namespace Zephyrus\Core\Configuration;
+<?php namespace Zephyrus\Core\Configuration\Mailer;
 
+use Zephyrus\Core\Configuration\Configuration;
 use Zephyrus\Core\Mailer\MailerService;
 use Zephyrus\Core\Mailer\SmtpService;
 use Zephyrus\Exceptions\Mailer\MailerSmtpEncryptionException;
 use Zephyrus\Exceptions\Mailer\MailerSmtpPortException;
 
-class MailerConfiguration
+class MailerConfiguration extends Configuration
 {
     public const array DEFAULT_CONFIGURATIONS = [
         'transport' => 'smtp',
@@ -14,7 +15,6 @@ class MailerConfiguration
         'smtp' => MailerSmtpConfiguration::DEFAULT_CONFIGURATIONS,
     ];
 
-    private array $configurations;
     private string $transport;
     private string $fromAddress;
     private string $fromName;
@@ -26,7 +26,7 @@ class MailerConfiguration
      */
     public function __construct(array $configurations = self::DEFAULT_CONFIGURATIONS)
     {
-        $this->initializeConfigurations($configurations);
+        parent::__construct($configurations);
         $this->initializeTransport();
         $this->initializeFrom();
         $this->initializeSmtpConfigurations();
@@ -58,11 +58,6 @@ class MailerConfiguration
     public function getSmtpConfiguration(): ?MailerSmtpConfiguration
     {
         return $this->smtpConfiguration;
-    }
-
-    private function initializeConfigurations(array $configurations): void
-    {
-        $this->configurations = $configurations;
     }
 
     private function initializeTransport(): void

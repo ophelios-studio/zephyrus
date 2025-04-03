@@ -1,28 +1,24 @@
 <?php namespace Zephyrus\Core\Configuration\Security;
 
-class EncryptionConfiguration
+use Zephyrus\Core\Configuration\Configuration;
+
+class EncryptionConfiguration extends Configuration
 {
     public const array DEFAULT_CONFIGURATIONS = [
         'key' => 'default_key' // Encryption key (should be unique by project and environnement)
     ];
 
-    private array $configurations;
     private string $key;
 
     public function __construct(array $configurations = self::DEFAULT_CONFIGURATIONS)
     {
-        $this->initializeConfigurations($configurations);
+        parent::__construct($configurations);
         $this->initializeKey();
     }
 
     public function getKey(): string
     {
         return $this->key;
-    }
-
-    private function initializeConfigurations(array $configurations): void
-    {
-        $this->configurations = $configurations;
     }
 
     private function initializeKey(): void

@@ -2,7 +2,7 @@
 
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\PHPMailer;
-use Zephyrus\Core\Configuration\MailerSmtpConfiguration;
+use Zephyrus\Core\Configuration\Mailer\MailerSmtpConfiguration;
 use Zephyrus\Exceptions\Mailer\MailerException;
 
 class SmtpService implements MailerService

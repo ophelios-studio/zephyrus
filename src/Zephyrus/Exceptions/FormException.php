@@ -5,7 +5,7 @@ use Zephyrus\Application\Form;
 class FormException extends ZephyrusRuntimeException
 {
     private ?Form $failedForm;
-    private ?string $redirectPath = null;
+    private ?string $redirectPath;
 
     public function __construct(?Form $failedForm, ?string $redirectPath = null, ?string $message = null)
     {

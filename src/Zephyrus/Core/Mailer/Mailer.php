@@ -3,7 +3,7 @@
 use InvalidArgumentException;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\PHPMailer;
-use Zephyrus\Core\Configuration\MailerConfiguration;
+use Zephyrus\Core\Configuration\Mailer\MailerConfiguration;
 use Zephyrus\Exceptions\Mailer\MailerAttachmentNotFoundException;
 use Zephyrus\Exceptions\Mailer\MailerException;
 use Zephyrus\Exceptions\Mailer\MailerInvalidAddressException;

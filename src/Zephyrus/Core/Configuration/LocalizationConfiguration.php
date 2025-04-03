@@ -1,8 +1,8 @@
 <?php namespace Zephyrus\Core\Configuration;
 
-class LocalizationConfiguration
+class LocalizationConfiguration extends Configuration
 {
-    public const DEFAULT_CONFIGURATIONS = [
+    public const array DEFAULT_CONFIGURATIONS = [
         'path' => ROOT_DIR . '/locale', // Path to locales
         'cache' => ROOT_DIR . '/cache/locale', // Path to cache root
         'locale' => 'fr_CA', // Default language
@@ -11,7 +11,6 @@ class LocalizationConfiguration
         'currency' => 'CAD' // Default currency
     ];
 
-    private array $configurations;
     private string $path;
     private string $cache;
     private string $locale;
@@ -21,7 +20,7 @@ class LocalizationConfiguration
 
     public function __construct(array $configurations = self::DEFAULT_CONFIGURATIONS)
     {
-        $this->initializeConfigurations($configurations);
+        parent::__construct($configurations);
         $this->initializePath();
         $this->initializeCache();
         $this->initializeLocale();
@@ -58,11 +57,6 @@ class LocalizationConfiguration
     public function getCurrency(): string
     {
         return $this->currency;
-    }
-
-    private function initializeConfigurations(array $configurations): void
-    {
-        $this->configurations = $configurations;
     }
 
     private function initializeLocale(): void
