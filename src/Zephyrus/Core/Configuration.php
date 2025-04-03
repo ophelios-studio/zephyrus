@@ -3,7 +3,7 @@
 use RuntimeException;
 use Zephyrus\Core\Configuration\ConfigurationFile;
 use Zephyrus\Core\Configuration\LocalizationConfiguration;
-use Zephyrus\Core\Configuration\MailerConfiguration;
+use Zephyrus\Core\Configuration\Mailer\MailerConfiguration;
 use Zephyrus\Core\Configuration\Security\SecurityConfiguration;
 use Zephyrus\Core\Configuration\SessionConfiguration;
 use Zephyrus\Exceptions\Session\SessionLifetimeException;
