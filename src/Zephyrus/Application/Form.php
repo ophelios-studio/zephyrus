@@ -312,9 +312,8 @@ class Form
 
             if ($reflection->hasProperty($key)) {
                 $property = $reflection->getProperty($key);
-                if ($property->isPublic()) {
-                    $entity->$key = $value;
-                }
+                $property->setAccessible(true);
+                $entity->$key = $value;
             }
         }
 
@@ -344,9 +343,8 @@ class Form
 
             if ($reflection->hasProperty($key)) {
                 $property = $reflection->getProperty($key);
-                if ($property->isPublic()) {
-                    $entity->$key = $value;
-                }
+                $property->setAccessible(true);
+                $entity->$key = $value;
             }
         }
 
