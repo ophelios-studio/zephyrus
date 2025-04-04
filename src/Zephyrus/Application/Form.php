@@ -1,6 +1,9 @@
-<?php namespace Zephyrus\Application;
+<?php
+
+namespace Zephyrus\Application;
 
 use stdClass;
+use Zephyrus\Core\Entity\Entity;
 
 class Form
 {
@@ -290,6 +293,66 @@ class Form
         }
         return (object) $objectProperties;
     }
+
+    /**
+     * Updates the given entity using the form fields that match entity's properties.
+     *
+     * @param object $entity
+     * @param array $ignoreFields
+     */
+    public function updateEntity(Entity $entity, array $ignoreFields = []): Entity
+    {
+        $formData = $this->getFields();
+        $reflection = new \ReflectionClass($entity);
+
+        foreach ($formData as $key => $value) {
+            if (in_array($key, $ignoreFields)) {
+                continue;
+            }
+
+            if ($reflection->hasProperty($key)) {
+                $property = $reflection->getProperty($key);
+                if ($property->isPublic()) {
+                    $entity->$key = $value;
+                }
+            }
+        }
+
+        return $entity;
+    }
+
+
+    /**
+     * Builds a new entity of the given class name using the form fields.
+     * Fields not matching properties will be ignored. Fields not present will be null.
+     *
+     * @param string $className
+     * @param array $ignoreFields
+     * @return object
+     */
+    public function buildEntity(string $className, array $ignoreFields = []): Entity
+    {
+        /** @var Entity $entity */
+        $entity = $className::build();
+        $formData = $this->getFields();
+        $reflection = new \ReflectionClass($entity);
+
+        foreach ($formData as $key => $value) {
+            if (in_array($key, $ignoreFields)) {
+                continue;
+            }
+
+            if ($reflection->hasProperty($key)) {
+                $property = $reflection->getProperty($key);
+                if ($property->isPublic()) {
+                    $entity->$key = $value;
+                }
+            }
+        }
+
+        return $entity;
+    }
+
 
     private static function flattenArray(array $array, $prefix = ''): array
     {
