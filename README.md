@@ -11,7 +11,7 @@
 [![GitHub release](https://img.shields.io/github/release/ophelios-studio/zephyrus.svg)]()
 
 # Philosophie
-Bienvenue dans le Framework Zephyrus! Ce framework est fondé sur un modèle pédagogique en s'orientant sur une structure MVC simple, une approche de programmation flexible laissant place à une extensibilité pour tous types de projet, une forte considération pour la sécurité applicative et une liberté de développement. Le tout offert depuis un noyeau orienté-objet élégant favorisant l'écriture d'un code de qualité propre et maintenable. Développement avec une philosophie de maintenir un plaisir à programmer en n'étant pas rigoureusement strict sur une utilisation figée où tout doit passer par une configuration et y être limité. Zephyrus s'insère à mi-chemin entre les plus petits frameworks et les monstres pour ainsi répondre aux besoins de la plupart des projets.
+Le framework Zephyrus, disponible publiquement depuis plus de 10 ans, se distingue par son approche pédagogique et sa simplicité. Basé sur une structure MVC légère et flexible, il offre une extensibilité adaptée à tous types de projets, tout en intégrant des principes solides de sécurité applicative et une grande liberté de développement. Construit autour d’un noyau orienté objet élégant, Zephyrus favorise l’écriture d’un code propre, maintenable, et agréable à manipuler. Pensé pour allier plaisir et efficacité, il évite les contraintes excessives de configurations rigides. Positionné entre les micro-frameworks et les plateformes plus imposantes, Zephyrus répond aux besoins d’une large variété de projets.
 
 # Quelques caractéristiques générales
 * Une **structure de projet simple et intuitive** basée sur une architecture Model-View-Controller. 
@@ -19,9 +19,9 @@ Bienvenue dans le Framework Zephyrus! Ce framework est fondé sur un modèle pé
 * Approche pédagogique pour la conception élégante de classes et favorise une rétrocompatibilité avec les fonctionnalités natives de PHP comme l'utilisation des super-globales, de la session et autres.
 * Routeur de requêtes simple et flexible basé sur des contrôleurs incluant une intégration facile de middlewares dans le flux d'une requête et d'un contrôleur du projet. Facilite la segmentation des responsabilités et la lecture d'une chaîne d'exécution.
 * Plusieurs mécanismes de sécurité intégrés tels que les entêtes CSP, les jetons CSRF, protection XSS, détection d'intrusion basé sur le projet (_[PHPIDS](https://github.com/PHPIDS/PHPIDS)_), mécanisme d'autorisations et plus encore !
+* Système de validation de formulaires élégant et facilement extensible offrant une multitude de règles nativement sur les nombres, les chaînes, les fichiers téléversés, les dates, etc.
 * Philosophie d'accès aux données depuis des courtiers manuellement définis offrant un contrôle complet sur la construction des requêtes SQL et, par conséquent, une facilité de maintenance et d'optimisation.
 * Approche simple pour intégrer des recherches, tris et pagination sur les requêtes manuelles.
-* Système de validation de formulaires élégant et facilement extensible offrant une multitude de règles nativement sur les nombres, les chaînes, les fichiers téléversés, les dates, etc.
 * Moteur unique simple et optimisé pour la gestion des chaînes de caractères d'internationalisation (i18n) depuis une structure JSON, le tout facilement organisé.
 * Configuration d’un projet rapide et flexible permettant des paramètres personnalisés utilisables facilement. 
 * Hautement extensibles facilement grâce à sa compatibilité avec les modules Composer.
@@ -52,7 +52,7 @@ $ composer install
 ```
 
 ## Intégration avec Apache
-Une fois le projet installé, il suffit d'ajouter un entré dans vos vhost qui pointe vers le répertoire `/public` du 
+Une fois le projet installé, il suffit d'ajouter une entrée dans vos vhost qui pointe vers le répertoire `/public` du 
 projet.
 
 ```
@@ -173,7 +173,7 @@ class ExampleController extends Controller
 # Contribution
 
 #### Remerciements ❤️
-* Étudiants de la Technique informatique du Cégep de Sorel-Tracy ainsi que les employés de Onirique pour leur support et idées d'améliorations. 
+* Étudiants de la Technique informatique du Cégep de Sorel-Tracy pour leur support et idées d'améliorations.
 * Auteurs de _[PHPIDS](https://github.com/PHPIDS/PHPIDS)_ pour avoir donné leur permission pour l'inclusion de certaines parties de leur code pour concevoir le module de détection d'intrusion.
 
 #### Sécurité
