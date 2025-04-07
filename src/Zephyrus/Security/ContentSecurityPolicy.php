@@ -27,7 +27,10 @@ class ContentSecurityPolicy
         'child-src',
         'base-uri',
         'connect-src',
+        'frame-src',
         'form-action',
+        'manifest-src',
+        'object-src',
         'frame-ancestors',
         'media-src',
         'object-src',
@@ -60,6 +63,10 @@ class ContentSecurityPolicy
      */
     private string $reportUri;
 
+    private bool $enableScriptNonce = true;
+
+    private bool $enableStyleNonce = false;
+
     /**
      * Returns the generated cryptographic nonce for inline styles and scripts. One per request.
      */
@@ -69,6 +76,11 @@ class ContentSecurityPolicy
             self::$nonce = Cryptography::randomString(27);
         }
         return self::$nonce;
+    }
+
+    public static function hash(string $data): string
+    {
+        return 'sha256-' . Cryptography::hash($data, 'sha256');
     }
 
     public function __construct()
@@ -89,6 +101,26 @@ class ContentSecurityPolicy
         if ($this->compatible) {
             header("X-Content-Security-Policy$reportOnly: " . $header);
         }
+    }
+
+    public function isScriptNonceEnabled(): bool
+    {
+        return $this->enableScriptNonce;
+    }
+
+    public function isStyleNonceEnables(): bool
+    {
+        return $this->enableStyleNonce;
+    }
+
+    public function setScriptNonceEnabled(bool $enableScriptNonce): void
+    {
+        $this->enableScriptNonce = $enableScriptNonce;
+    }
+
+    public function setStyleNonceEnabled(bool $enableStyleNonce): void
+    {
+        $this->enableStyleNonce = $enableStyleNonce;
     }
 
     public function getAllHeader(): array
@@ -126,6 +158,26 @@ class ContentSecurityPolicy
     public function addScriptSource(string $source): void
     {
         $this->addSource('script-src', $source);
+    }
+
+    public function setFrameSources(array $scriptSources): void
+    {
+        $this->headers['frame-src'] = $scriptSources;
+    }
+
+    public function addFrameSource(string $source): void
+    {
+        $this->addSource('frame-src', $source);
+    }
+
+    public function setManifestSources(array $scriptSources): void
+    {
+        $this->headers['manifest-src'] = $scriptSources;
+    }
+
+    public function addManifestSource(string $source): void
+    {
+        $this->addSource('manifest-src', $source);
     }
 
     /**
@@ -413,7 +465,9 @@ class ContentSecurityPolicy
                 }
                 $value .= $source;
             }
-            $header = ($name == "script-src" && !empty(self::$nonce))
+            $hasScriptNonce = ($name == "script-src" && $this->enableScriptNonce && !empty(self::$nonce));
+            $hasStyleNonce = ($name == "style-src" && $this->enableStyleNonce && !empty(self::$nonce));
+            $header = $hasScriptNonce || $hasStyleNonce
                 ? "$name $value 'nonce-" . self::$nonce . "';"
                 : "$name $value;";
         }
