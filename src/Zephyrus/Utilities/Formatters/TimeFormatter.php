@@ -4,6 +4,7 @@ use DateTime;
 use IntlDateFormatter;
 use Locale;
 use Zephyrus\Application\Configuration;
+use Zephyrus\Core\Application;
 
 trait TimeFormatter
 {
@@ -15,7 +16,11 @@ trait TimeFormatter
         if (!$dateTime instanceof \DateTime) {
             $dateTime = new DateTime($dateTime);
         }
-        $formatter = new IntlDateFormatter(Locale::getDefault(), IntlDateFormatter::LONG, IntlDateFormatter::NONE, null, null, Configuration::getLocale('format_date', "d LLLL yyyy"));
+
+        $config = Configuration::getLanguage(Application::getInstance()->getCurrentLanguage()->locale);
+        $format = $config['formats']['date'] ?? "d LLLL yyyy";
+
+        $formatter = new IntlDateFormatter(Locale::getDefault(), IntlDateFormatter::LONG, IntlDateFormatter::NONE, null, null, $format);
         return $formatter->format($dateTime->getTimestamp()) ?: "-";
     }
 
@@ -27,7 +32,9 @@ trait TimeFormatter
         if (!$dateTime instanceof \DateTime) {
             $dateTime = new DateTime($dateTime);
         }
-        $formatter = new IntlDateFormatter(Locale::getDefault(), IntlDateFormatter::LONG, IntlDateFormatter::SHORT, null, null, Configuration::getLocale('format_datetime', "d LLLL yyyy, HH:mm"));
+        $config = Configuration::getLanguage(Application::getInstance()->getCurrentLanguage()->locale);
+        $format = $config['formats']['datetime'] ?? "d LLLL yyyy, HH:mm";
+        $formatter = new IntlDateFormatter(Locale::getDefault(), IntlDateFormatter::LONG, IntlDateFormatter::SHORT, null, null, $format);
         return $formatter->format($dateTime->getTimestamp()) ?: "-";
     }
 
@@ -39,11 +46,13 @@ trait TimeFormatter
         if (!$dateTime instanceof \DateTime) {
             $dateTime = new DateTime($dateTime);
         }
-        $formatter = new IntlDateFormatter(Locale::getDefault(), IntlDateFormatter::NONE, IntlDateFormatter::LONG, null, null, Configuration::getLocale('format_time', "HH:mm"));
+        $config = Configuration::getLanguage(Application::getInstance()->getCurrentLanguage()->locale);
+        $format = $config['formats']['time'] ?? "HH:mm";
+        $formatter = new IntlDateFormatter(Locale::getDefault(), IntlDateFormatter::NONE, IntlDateFormatter::LONG, null, null, $format);
         return $formatter->format($dateTime->getTimestamp()) ?: "-";
     }
 
-    public static function duration($seconds, $minuteSuffix = ":", $hourSuffix = ":", $secondSuffix = "")
+    public static function duration($seconds, $minuteSuffix = ":", $hourSuffix = ":", $secondSuffix = ""): string
     {
         return gmdate("H" . $hourSuffix . "i" . $minuteSuffix . "s" . $secondSuffix, $seconds);
     }

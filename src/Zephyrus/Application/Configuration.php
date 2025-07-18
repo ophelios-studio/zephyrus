@@ -49,6 +49,12 @@ class Configuration
         return ($property) ? $configs[$property] ?? $defaultValue : $configs;
     }
 
+    public static function getLanguage(?string $property = null, mixed $defaultValue = null): mixed
+    {
+        $configs = self::read('language');
+        return ($property) ? $configs[$property] ?? $defaultValue : $configs;
+    }
+
     public static function getLocale(?string $property = null, mixed $defaultValue = null): mixed
     {
         $configs = self::read('locale');
