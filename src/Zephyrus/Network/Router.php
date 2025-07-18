@@ -47,8 +47,8 @@ class Router
         $this->requestedMethod = $request->getMethod();
         $route = $this->findRouteFromRequest();
         $route->extractArgumentsFromUrl($this->routeUrl);
-        $request->setRouteDefinition($route);
-        $request->guard();
+        $this->request->setRouteDefinition($route);
+        $this->request->guardSecurity();
         return $this->createResponse($route);
     }
 
@@ -101,8 +101,9 @@ class Router
      * corresponding controller class.
      *
      * @param RouteDefinition $route
-     * @throws RouteArgumentException
      * @return Response | null
+     * @throws RouteArgumentException
+     * @throws UnauthorizedAccessException
      */
     private function createResponse(RouteDefinition $route): ?Response
     {
@@ -119,6 +120,9 @@ class Router
         if ($responseBefore instanceof Response) {
             return $responseBefore;
         }
+
+        // Guard after the before middleware to allow automated login logics if needed
+        $this->request->guardAuthorizations();
 
         try {
             $this->restrictArguments($controller, $route);

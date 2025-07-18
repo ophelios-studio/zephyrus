@@ -50,9 +50,8 @@ class Request
      * @throws IntrusionDetectionException
      * @throws InvalidCsrfException
      * @throws MissingCsrfException
-     * @throws UnauthorizedAccessException
      */
-    public function guard(): void
+    public function guardSecurity(): void
     {
         if ($this->intrusionDetection->isEnabled()) {
             $this->intrusionDetection->run();
@@ -60,6 +59,13 @@ class Request
         if ($this->csrfGuard->isEnabled()) {
             $this->csrfGuard->run();
         }
+    }
+
+    /**
+     * @throws UnauthorizedAccessException
+     */
+    public function guardAuthorizations(): void
+    {
         $this->authorizationGuard->run();
     }
 
