@@ -3,6 +3,7 @@
 use RuntimeException;
 use stdClass;
 use Zephyrus\Application\Localization;
+use Zephyrus\Application\Models\Language;
 use Zephyrus\Application\Views\LatteEngine;
 use Zephyrus\Application\Views\PhpEngine;
 use Zephyrus\Application\Views\RenderEngine;
@@ -87,7 +88,7 @@ class Application
      * This method retrieves the supported language object for the application (which contains the properties locale,
      * lang_code, country_code, flag_emoji, country and lang).
      *
-     * @return array
+     * @return Language[]
      */
     public function getSupportedLanguages(): array
     {
@@ -105,7 +106,7 @@ class Application
         return $this->supportedLanguages;
     }
 
-    public function getCurrentLanguage(): stdClass
+    public function getCurrentLanguage(): Language
     {
         return $this->localization->getLoadedLanguage();
     }

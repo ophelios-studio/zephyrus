@@ -2,6 +2,7 @@
 
 use Locale;
 use stdClass;
+use Zephyrus\Application\Models\Language;
 use Zephyrus\Core\Configuration\LocalizationConfiguration;
 use Zephyrus\Exceptions\LocalizationException;
 use Zephyrus\Utilities\FileSystem\Directory;
@@ -66,11 +67,11 @@ class Localization
      * of stdClass containing all the details for each language : locale, lang_code, country_code, flag_emoji, country,
      * lang.
      *
-     * @return stdClass[]
+     * @return Language[]
      */
     public function getInstalledLanguages(): array
     {
-        return $this->installedLanguages;
+        return Language::buildArray($this->installedLanguages);
     }
 
     /**
@@ -88,11 +89,11 @@ class Localization
      * Retrieves the actual loaded language. Will return an stdClass containing all the details : locale, lang_code,
      * country_code, flag_emoji, country, lang.
      *
-     * @return stdClass
+     * @return Language
      */
-    public function getLoadedLanguage(): stdClass
+    public function getLoadedLanguage(): Language
     {
-        return $this->installedLanguages[$this->appLocale];
+        return Language::build($this->installedLanguages[$this->appLocale]);
     }
 
     /**
