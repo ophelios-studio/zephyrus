@@ -67,11 +67,11 @@ class Localization
      * of stdClass containing all the details for each language : locale, lang_code, country_code, flag_emoji, country,
      * lang.
      *
-     * @return Language[]
+     * @return array
      */
     public function getInstalledLanguages(): array
     {
-        return Language::buildArray($this->installedLanguages);
+        return $this->installedLanguages;
     }
 
     /**

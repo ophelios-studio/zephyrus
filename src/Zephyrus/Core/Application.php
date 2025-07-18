@@ -98,7 +98,7 @@ class Application
             $installedLanguages = $this->localization->getInstalledLanguages();
             foreach ($supportedLocales as $locale) {
                 if (key_exists($locale, $installedLanguages)) {
-                    $languages[] = $installedLanguages[$locale];
+                    $languages[] = Language::build($installedLanguages[$locale]);
                 }
             }
             $this->supportedLanguages = $languages;
