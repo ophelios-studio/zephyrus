@@ -465,10 +465,10 @@ class ContentSecurityPolicy
                 }
                 $value .= $source;
             }
-            $hasScriptNonce = ($name == "script-src" && $this->enableScriptNonce && !empty(self::$nonce));
-            $hasStyleNonce = ($name == "style-src" && $this->enableStyleNonce && !empty(self::$nonce));
+            $hasScriptNonce = ($name == "script-src" && $this->enableScriptNonce);
+            $hasStyleNonce = ($name == "style-src" && $this->enableStyleNonce);
             $header = $hasScriptNonce || $hasStyleNonce
-                ? "$name $value 'nonce-" . self::$nonce . "';"
+                ? "'nonce-" . self::nonce() . "' $name $value;"
                 : "$name $value;";
         }
         return $header;
