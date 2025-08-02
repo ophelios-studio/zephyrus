@@ -159,6 +159,18 @@ function objectToArray(stdClass $object): array
 }
 
 /**
+ * Function accessible within view files to embed the content of the specified file within the HTML body. Useful for SVG
+ * embedding to enable styling.
+ *
+ * @param string $publicPath
+ */
+function embed(string $publicPath): void
+{
+    $publicPath = ltrim($publicPath, "/");
+    echo file_get_contents(ROOT_DIR . '/public/' . $publicPath);
+}
+
+/**
  * Replacement of the empty function that should be used which considers numeric values (0, 0.0, "0", etc.).
  *
  * @param mixed $value
