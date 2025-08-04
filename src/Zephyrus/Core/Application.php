@@ -70,7 +70,18 @@ class Application
     }
 
     /**
-     * Allows to set a custom RenderEngine class which is not yet supported by Zephyrus (e.g. Blade template engine).
+     * Can be overridden to apply any custom logics to get the application version.
+     *
+     * @return string
+     */
+    public function getVersion(): string
+    {
+        return Configuration::getApplication('version', 'dev:no-version');
+    }
+
+    /**
+     * Allows you to set a custom RenderEngine class which is not yet supported by Zephyrus (e.g., Blade template
+     * engine).
      *
      * @param RenderEngine $renderEngine
      */
