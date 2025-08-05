@@ -144,25 +144,15 @@ class Kernel
     }
 
     /**
-     * Loads the configurations within .env file into the $_ENV super global. Seeks the .env file at the root directory
-     * defined with the « ROOT_DIR » constant. Creates CONSTANTS automatically with the env variables. Ignores if the
-     * .env does not exist (some project could not have a use for it).
+     * Loads the configurations within .env file into the $_ENV / $_SERVER super globals. Seeks the .env file at the
+     * root directory defined with the « ROOT_DIR » constant. Ignores if the .env does not exist (some projects could
+     * not have a use for it).
      */
     private function initializeEnvironnement(): void
     {
-        foreach ($_ENV as $item => $value) {
-            if (!defined($item) && $value !== null) {
-                define($item, $value);
-            }
-        }
         if (file_exists(ROOT_DIR . '/.env')) {
             $dotenv = Dotenv::createImmutable(ROOT_DIR);
-            $env = $dotenv->load();
-            foreach ($env as $item => $value) {
-                if (!defined($item)) {
-                    define($item, $value);
-                }
-            }
+            $dotenv->load();
         }
     }
 

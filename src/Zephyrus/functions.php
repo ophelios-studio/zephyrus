@@ -170,6 +170,12 @@ function embed(string $publicPath): void
     echo file_get_contents(ROOT_DIR . '/public/' . $publicPath);
 }
 
+function env(string $key, mixed $default = null): mixed
+{
+    return $_SERVER[$key] ?? $_ENV[$key] ?? $default;
+}
+
+
 /**
  * Replacement of the empty function that should be used which considers numeric values (0, 0.0, "0", etc.).
  *

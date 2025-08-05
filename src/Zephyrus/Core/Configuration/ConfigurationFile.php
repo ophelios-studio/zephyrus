@@ -2,6 +2,7 @@
 
 use RuntimeException;
 use Symfony\Component\Yaml\Exception\ParseException;
+use Symfony\Component\Yaml\Tag\TaggedValue;
 use Symfony\Component\Yaml\Yaml;
 
 class ConfigurationFile
@@ -14,7 +15,8 @@ class ConfigurationFile
         $this->path = $filePath;
         if (is_readable($this->path)) {
             try {
-                $this->content = Yaml::parseFile($this->path, Yaml::PARSE_CONSTANT);
+                $yamlData = Yaml::parseFile($this->path);
+                $this->content = $this->processYamlTags($yamlData);
             } catch (ParseException $exception) {
                 throw new RuntimeException("Unable to parse the YAML string [{$exception->getMessage()}]");
             }
@@ -45,5 +47,22 @@ class ConfigurationFile
     public function writeProperty(string $property, mixed $value): void
     {
         $this->content[$property] = $value;
+    }
+
+    private function processYamlTags(array $config): array
+    {
+        foreach ($config as $key => $value) {
+            if (is_array($value)) {
+                $config[$key] = $this->processYamlTags($value); // Process sub-arrays
+            } elseif ($value instanceof TaggedValue) {
+                if ($value->getTag() === 'env') {
+                    $arguments = explode(',', $value->getValue());
+                    $envKey = trim($arguments[0], "\"'"); // Get the ENV key
+                    $default = isset($arguments[1]) ? trim($arguments[1], "\"'") : null;
+                    $config[$key] = env($envKey, $default);
+                }
+            }
+        }
+        return $config;
     }
 }
