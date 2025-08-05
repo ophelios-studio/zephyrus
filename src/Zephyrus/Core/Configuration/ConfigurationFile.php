@@ -15,7 +15,7 @@ class ConfigurationFile
         $this->path = $filePath;
         if (is_readable($this->path)) {
             try {
-                $yamlData = Yaml::parseFile($this->path);
+                $yamlData = Yaml::parseFile($this->path, Yaml::PARSE_CUSTOM_TAGS);
                 $this->content = $this->processYamlTags($yamlData);
             } catch (ParseException $exception) {
                 throw new RuntimeException("Unable to parse the YAML string [{$exception->getMessage()}]");
