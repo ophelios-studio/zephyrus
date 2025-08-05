@@ -150,13 +150,19 @@ class Kernel
      */
     private function initializeEnvironnement(): void
     {
-        if (!file_exists(ROOT_DIR . '/.env')) {
-            return;
+        foreach ($_ENV as $item => $value) {
+            if (!defined($item) && $value !== null) {
+                define($item, $value);
+            }
         }
-        $dotenv = Dotenv::createImmutable(ROOT_DIR);
-        $env = $dotenv->load();
-        foreach ($env as $item => $value) {
-            define($item, $value);
+        if (file_exists(ROOT_DIR . '/.env')) {
+            $dotenv = Dotenv::createImmutable(ROOT_DIR);
+            $env = $dotenv->load();
+            foreach ($env as $item => $value) {
+                if (!defined($item)) {
+                    define($item, $value);
+                }
+            }
         }
     }
 
