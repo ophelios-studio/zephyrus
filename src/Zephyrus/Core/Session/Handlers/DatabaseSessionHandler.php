@@ -46,8 +46,8 @@ class DatabaseSessionHandler extends SessionHandler
 
     public function gc(int $max_lifetime): int
     {
-        $old = time() - $max_lifetime;
-        $statement = $this->database->query("DELETE FROM $this->table WHERE access < ?", [$old]);
+        $now = time();
+        $statement = $this->database->query("DELETE FROM $this->table WHERE expire < ?", [$now]);
         return $statement->count();
     }
 
