@@ -79,7 +79,9 @@ class ServerEnvironnement
 
     public function getServerPort(): string
     {
-        return $this->serverVariables['SERVER_PORT'] ?? "80";
+        return (($this->serverVariables['HTTP_X_FORWARDED_PROTO'] ?? '') == 'https')
+            ? 443
+            : $this->serverVariables['SERVER_PORT'] ?? "80";
     }
 
     public function getReferer(): string

@@ -7,8 +7,13 @@ use Zephyrus\Application\Configuration;
 class Cryptography
 {
     /**
-     * Default algorithm to use with encrypt() and decrypt() methods if none is specified otherwise within the security
-     * section of the config.yml configuration file as property [encryption -> algorithm].
+     * Version used in serialized AEAD payloads to allow future rotations.
+     */
+    private const PAYLOAD_VERSION = 1;
+
+    /**
+     * Default algorithm for legacy decrypt support (CBC + HMAC).
+     * New encryptions use AEAD (Sodium XChaCha20-Poly1305 if available, otherwise OpenSSL AES-256-GCM).
      */
     private const DEFAULT_ENCRYPTION_ALGORITHM = 'aes-256-cbc';
 
@@ -16,26 +21,15 @@ class Cryptography
      * Default algorithm to use with hashPassword() if none is specified otherwise within the security section of the
      * config.yml configuration file as property [password -> algorithm].
      */
-    private const DEFAULT_PASSWORD_HASH_ALGORITHM = PASSWORD_BCRYPT;
+    private const DEFAULT_PASSWORD_HASH_ALGORITHM = PASSWORD_DEFAULT;
 
     /**
-     * Default cost option to use with hashPassword() for BCRYPT if none is specified otherwise within the security
-     * section of the config.yml configuration file as property [password -> options -> cost].
+     * Default cost option for BCRYPT if used (kept for backward compatibility with existing configs).
      */
     private const DEFAULT_PASSWORD_HASH_COST = 13;
 
     /**
-     * Cryptographically hash a specified string using the default PHP hashing algorithm. This method uses the default
-     * hash function included in the PHP core and thus automatically provides a cryptographically random salt. If the
-     * property [pepper] is defined in the password security section of the config.yml file, the method will concatenate
-     * the password with the configured pepper.
-     *
-     * This pepper should be unique by project and thus ensure that a given hashed password will work only within a
-     * specific project. The pepper is designed to be a "secret" kept within the server. Should be defined as a server
-     * environment to ensure maximum security.
-     *
-     * The algorithm used by default is PASSWORD_CRYPT but can be changed with the property [algorithm] in the password
-     * security section of the config.yml file as well as the hash options.
+     * Cryptographically hash a specified string. Adds optional pepper from config.
      *
      * @param string $clearTextPassword
      * @return string
@@ -46,15 +40,15 @@ class Cryptography
         $pepper = $config['pepper'] ?? "";
         $algorithm = $config['algorithm'] ?? self::DEFAULT_PASSWORD_HASH_ALGORITHM;
         $options = $config['options'] ?? ['cost' => self::DEFAULT_PASSWORD_HASH_COST];
-        if ($pepper) {
-            $clearTextPassword = $clearTextPassword . $pepper;
+
+        if ($pepper !== "") {
+            $clearTextPassword .= $pepper;
         }
         return password_hash($clearTextPassword, $algorithm, $options);
     }
 
     /**
-     * Determines if the specified hash matches the given clear text password. Makes sure to add the pepper if one is
-     * defined within the project's config.yml file. See hashPassword method for more information.
+     * Verify a hashed password. Adds optional pepper from config.
      *
      * @param string $clearTextPassword
      * @param string $hash
@@ -64,40 +58,37 @@ class Cryptography
     {
         $config = Configuration::getSecurity("password");
         $pepper = $config['pepper'] ?? "";
-        if ($pepper) {
-            $clearTextPassword = $clearTextPassword . $pepper;
+        if ($pepper !== "") {
+            $clearTextPassword .= $pepper;
         }
         return password_verify($clearTextPassword, $hash);
     }
 
     /**
-     * Hashes the given string with the specified algorithm. By default, will do a basic md5 hashing. This method makes
-     * sure to validate the support of the algorithm. Throws InvalidArgumentException otherwise.
+     * Hash a string using a selected algorithm (defaults to sha256).
      *
      * @param string $string
      * @param string $algorithm
      * @return string
      */
-    public static function hash(string $string, string $algorithm = 'md5'): string
+    public static function hash(string $string, string $algorithm = 'sha256'): string
     {
-        if (!in_array($algorithm, hash_algos())) {
+        if (!in_array($algorithm, hash_algos(), true)) {
             throw new InvalidArgumentException('Specified hashing algorithm not supported');
         }
         return hash($algorithm, $string);
     }
 
     /**
-     * Hashes the entire content of the given file with the specified algorithm. By default, will do a basic md5
-     * hashing. This method makes sure to validate the existence of the file and the support of the algorithm. Throws
-     * InvalidArgumentException otherwise.
+     * Hash a file using a selected algorithm (defaults to sha256).
      *
      * @param string $filename
      * @param string $algorithm
      * @return string
      */
-    public static function hashFile(string $filename, string $algorithm = 'md5'): string
+    public static function hashFile(string $filename, string $algorithm = 'sha256'): string
     {
-        if (!in_array($algorithm, hash_algos())) {
+        if (!in_array($algorithm, hash_algos(), true)) {
             throw new InvalidArgumentException('Specified hashing algorithm not supported');
         }
         if (!file_exists($filename)) {
@@ -107,20 +98,19 @@ class Cryptography
     }
 
     /**
-     * Returns a random hex of desired length based on the openSSL cryptographic random.
+     * Returns a random hex of desired length.
      *
      * @param int $length
      * @return string
      */
     public static function randomHex(int $length = 128): string
     {
-        $bytes = ceil($length / 2);
+        $bytes = (int)ceil($length / 2);
         return bin2hex(self::randomBytes($bytes));
     }
 
     /**
-     * Returns a random integer between the provided min and max using random bytes based on the openSSL cryptographic
-     * random. Throws InvalidArgumentException if min and max arguments have inconsistencies.
+     * Returns a random integer between the provided min and max using a cryptographically secure generator.
      *
      * @param int $min
      * @param int $max
@@ -134,20 +124,11 @@ class Cryptography
         if ($max < 0 || $min < 0) {
             throw new InvalidArgumentException('Only positive integers supported for now!');
         }
-
-        $difference = $max - $min;
-        for ($power = 8; pow(2, $power) < $difference; $power = $power * 2) {
-        }
-        $powerExp = $power / 8;
-        do {
-            $randDiff = hexdec(bin2hex(self::randomBytes($powerExp)));
-        } while ($randDiff > $difference);
-        return $min + $randDiff;
+        return random_int($min, $max);
     }
 
     /**
-     * Returns a random string of the desired length using only the given characters. If none is provided, alphanumeric
-     * characters ([0-9a-Z]) are used.
+     * Returns a random string from the specified character set. Defaults to [a-zA-Z0-9].
      *
      * @param int $length
      * @param string|array|null $characters
@@ -170,22 +151,19 @@ class Cryptography
     }
 
     /**
-     * Returns random bytes based on openssl. This method is used by all other "random" methods. Throws an exception if
-     * the result is not considered strong enough by the openssl lib.
+     * Returns cryptographically secure random bytes.
      *
      * @param int $length
      * @return string
      */
     public static function randomBytes(int $length = 1): string
     {
-        return openssl_random_pseudo_bytes($length);
+        return random_bytes($length);
     }
 
     /**
-     * Encrypts the given plain text using the configured encryption algorithm and the provided key. Includes a hash
-     * authentication processing. Returns a concatenation of the authentication hash (hmac), the generated iv and the
-     * cipher. By default, will encrypt using the AES CBC mode 256 bits (aes-256-cbc) algorithm. SHA256 is used to
-     * derive hmac key. Use method decrypt to retrieve the original plain text.
+     * Encrypt plaintext using AEAD. Prefers Sodium (XChaCha20-Poly1305); falls back to OpenSSL AES-256-GCM.
+     * Output is a JSON string with fields: {v, alg, nonce|iv, ct, tag?}.
      *
      * @param string $plainText
      * @param string|null $key
@@ -193,68 +171,117 @@ class Cryptography
      */
     public static function encrypt(string $plainText, ?string $key = null): string
     {
-        $algorithm = self::getEncryptionAlgorithm();
-        $key = !is_null($key) ? $key : self::getEncryptionDefaultKey();
-        if (is_null($key)) {
-            throw new RuntimeException("The encryption key cannot be null. Be sure to either give one specifically for the operation or set a default key within the config.yml file.");
+        $keyMaterial = $key ?? self::getEncryptionDefaultKey();
+        if ($keyMaterial === null || $keyMaterial === '') {
+            throw new RuntimeException("The encryption key cannot be null or empty. Provide a key or set a default key in the config.");
+        }
+        $aeadKey = self::normalizeKey($keyMaterial, 32);
+
+        if (extension_loaded('sodium')) {
+            $nonce = self::randomBytes(SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
+            $cipher = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt($plainText, '', $nonce, $aeadKey);
+            return json_encode([
+                'v' => self::PAYLOAD_VERSION,
+                'alg' => 'xchacha20poly1305-ietf',
+                'nonce' => base64_encode($nonce),
+                'ct' => base64_encode($cipher)
+            ], JSON_UNESCAPED_SLASHES);
         }
 
-        $initializationVector = self::randomBytes(openssl_cipher_iv_length($algorithm));
-        $keys = self::deriveEncryptionKey($key, $initializationVector); // password is the encryption key
-        $encryptionKey = mb_substr($keys, 0, 32, '8bit');
-        $hashAuthenticationKey = mb_substr($keys, 32, null, '8bit');
-        $cipher = openssl_encrypt($plainText, $algorithm, $encryptionKey, OPENSSL_RAW_DATA, $initializationVector);
-        $hmac = hash_hmac('sha256', $initializationVector . $cipher, $hashAuthenticationKey);
-        return base64_encode($hmac . $initializationVector . $cipher);
+        $ivLen = openssl_cipher_iv_length('aes-256-gcm');
+        $iv = self::randomBytes($ivLen);
+        $tag = '';
+        $cipher = openssl_encrypt($plainText, 'aes-256-gcm', $aeadKey, OPENSSL_RAW_DATA, $iv, $tag, '');
+        if ($cipher === false) {
+            throw new RuntimeException('OpenSSL encryption failed');
+        }
+        return json_encode([
+            'v' => self::PAYLOAD_VERSION,
+            'alg' => 'aes-256-gcm',
+            'iv' => base64_encode($iv),
+            'ct' => base64_encode($cipher),
+            'tag' => base64_encode($tag)
+        ], JSON_UNESCAPED_SLASHES);
     }
 
     /**
-     * Decrypts the given cipher using the configured encryption algorithm and the provided decryption key. Provided
-     * cipher should have been made by the encrypt method. Returns the plain text or null if decryption failed. By
-     * default, will decrypt using the AES CBC mode 256 bits (aes-256-cbc) algorithm. Returns null if decryption fails.
+     * Decrypt AEAD JSON payloads produced by encrypt(). Also supports legacy CBC+HMAC payloads.
      *
      * @param string $cipherText
      * @param string|null $key
-     * @return null|string
+     * @return string|null
      */
     public static function decrypt(string $cipherText, ?string $key = null): ?string
     {
-        $algorithm = self::getEncryptionAlgorithm();
-        $key = !is_null($key) ? $key : self::getEncryptionDefaultKey();
-        if (is_null($key)) {
-            throw new RuntimeException("The encryption key cannot be null. Be sure to either give one specifically for the operation or set a default key within the config.yml file.");
+        $keyMaterial = $key ?? self::getEncryptionDefaultKey();
+        if ($keyMaterial === null || $keyMaterial === '') {
+            throw new RuntimeException("The decryption key cannot be null or empty. Provide a key or set a default key in the config.");
         }
+        $aeadKey = self::normalizeKey($keyMaterial, 32);
 
-        $cipherText = base64_decode($cipherText);
-        if (strlen($cipherText) < 81) {
+        // Try AEAD JSON payload first
+        if (strlen($cipherText) > 0 && $cipherText[0] === '{') {
+            $payload = json_decode($cipherText, true);
+            if (!is_array($payload) || !isset($payload['alg'], $payload['v'])) {
+                return null;
+            }
+            if ($payload['alg'] === 'xchacha20poly1305-ietf') {
+                if (!extension_loaded('sodium')) {
+                    return null;
+                }
+                $nonce = base64_decode($payload['nonce'] ?? '', true);
+                $ct = base64_decode($payload['ct'] ?? '', true);
+                if ($nonce === false || $ct === false) {
+                    return null;
+                }
+                $plain = sodium_crypto_aead_xchacha20poly1305_ietf_decrypt($ct, '', $nonce, $aeadKey);
+                return ($plain === false) ? null : $plain;
+            }
+            if ($payload['alg'] === 'aes-256-gcm') {
+                $iv = base64_decode($payload['iv'] ?? '', true);
+                $ct = base64_decode($payload['ct'] ?? '', true);
+                $tag = base64_decode($payload['tag'] ?? '', true);
+                if ($iv === false || $ct === false || $tag === false) {
+                    return null;
+                }
+                $plain = openssl_decrypt($ct, 'aes-256-gcm', $aeadKey, OPENSSL_RAW_DATA, $iv, $tag, '');
+                return ($plain === false) ? null : $plain;
+            }
             return null;
         }
 
-        $hmac = mb_substr($cipherText, 0, 64, '8bit');
-        $initializationVector = mb_substr($cipherText, 64, 16, '8bit');
-        $cipher = mb_substr($cipherText, 80, null, '8bit');
-        $keys = self::deriveEncryptionKey($key, $initializationVector); // password is the encryption key
-        $encryptionKey = mb_substr($keys, 0, 32, '8bit');
-        $hashAuthenticationKey = mb_substr($keys, 32, null, '8bit');
-        $hmacValidation = hash_hmac('sha256', $initializationVector . $cipher, $hashAuthenticationKey);
-        if (!hash_equals($hmac, $hmacValidation)) {
-            // Cipher authentication failed
+        // Legacy CBC + HMAC payload (base64(hmac_hex || iv || cipher))
+        $raw = base64_decode($cipherText, true);
+        if ($raw === false) {
             return null;
         }
-        $plainText = openssl_decrypt($cipher, $algorithm, $encryptionKey, OPENSSL_RAW_DATA, $initializationVector);
-        if ($plainText === false) {
-            return null; // @codeCoverageIgnore
+
+        // Detect and parse legacy format
+        if (strlen($raw) >= 64 + 1) {
+            $algorithm = self::getEncryptionAlgorithm(); // likely 'aes-256-cbc'
+            $ivLen = openssl_cipher_iv_length($algorithm);
+            if (strlen($raw) >= 64 + $ivLen + 1) {
+                $hmacHex = substr($raw, 0, 64);
+                $iv = substr($raw, 64, $ivLen);
+                $cipher = substr($raw, 64 + $ivLen);
+                // Reproduce legacy key derivation (PBKDF2 hex slicing)
+                $keys = self::deriveEncryptionKey($keyMaterial, $iv); // returns hex string length 64
+                $encKey = substr($keys, 0, 32); // ASCII hex as used historically
+                $authKey = substr($keys, 32);
+                $hmacValidation = hash_hmac('sha256', $iv . $cipher, $authKey);
+                if (!hash_equals($hmacHex, $hmacValidation)) {
+                    return null;
+                }
+                $plain = openssl_decrypt($cipher, $algorithm, $encKey, OPENSSL_RAW_DATA, $iv);
+                return ($plain === false) ? null : $plain;
+            }
         }
-        return $plainText;
+        return null;
     }
 
     /**
-     * Encrypts the entire content of the given file with the specified key. This method overrides the original if no
-     * destination is specified. Use the same algorithm as the encrypt function. This method makes sure to validate the
-     * existence of the file and the support of the algorithm. Throws InvalidArgumentException otherwise. Warning! Make
-     * sure to not lose the key because the file will forever be encrypted.
+     * Encrypt an entire file to destination (or overwrite source). Uses encrypt().
      *
-     * @see encrypt
      * @param string $plainTextFilename
      * @param string $key
      * @param string|null $destination
@@ -270,11 +297,8 @@ class Cryptography
     }
 
     /**
-     * Decrypts the entire content of the given file with the specified key. This method overrides the original if no
-     * destination is specified. Use the same algorithm as the decrypt function. This method makes sure to validate the
-     * existence of the file and the support of the algorithm. Throws InvalidArgumentException otherwise.
+     * Decrypt an entire file from source to destination (or overwrite source). Uses decrypt().
      *
-     * @see encrypt
      * @param string $cipherTextFilename
      * @param string $key
      * @param string|null $destination
@@ -286,55 +310,16 @@ class Cryptography
         }
         $cipherText = file_get_contents($cipherTextFilename);
         $originalContent = self::decrypt($cipherText, $key);
+        if ($originalContent === null) {
+            throw new RuntimeException('Decryption failed for the specified file');
+        }
         file_put_contents($destination ?? $cipherTextFilename, $originalContent);
     }
 
     /**
-     * Encrypts the given plain text with the specified encryption key as usual but also authenticate with a hmac using
-     * the Encrypt-then-MAC approach for authenticated encryption. The result contains the cipher, the hmac and salt.
+     * Legacy PBKDF2-based key derivation retained for backward compatibility.
+     * Returns a hex string by default (as historically used by the project).
      *
-     * @param string $plainText
-     * @param string $encryptionKey
-     * @param string $authenticationKey
-     * @return string
-     */
-    public static function authEncrypt(string $plainText, string $encryptionKey, string $authenticationKey): string
-    {
-        $cipher = self::encrypt($plainText, $encryptionKey);
-        $salt = self::randomBytes(32);
-        $hmac = hash_hmac('sha256', $cipher . $salt, $authenticationKey);
-        return base64_encode($cipher . '/+' . $hmac . '/+' . $salt);
-    }
-
-    /**
-     * Decrypts the given cipher text using the encryption key after authenticating the hmac with the given
-     * authentication key. Returns null if decryption fails.
-     *
-     * @param string $cipherText
-     * @param string $encryptionKey
-     * @param string $authenticationKey
-     * @return string|null
-     */
-    public static function authDecrypt(string $cipherText, string $encryptionKey, string $authenticationKey): ?string
-    {
-        $rawCipherText = base64_decode($cipherText);
-        if (substr_count($rawCipherText, '/+') != 2) {
-            return null;
-        }
-        list($cipher, $hmac, $salt) = explode('/+', $rawCipherText);
-        $hmacNow = hash_hmac('sha256', $cipher . $salt, $authenticationKey);
-        if (!hash_equals($hmac, $hmacNow)) {
-            return null;
-        }
-        return self::decrypt($cipher, $encryptionKey);
-    }
-
-    /**
-     * Generates a key from a password based key derivation function (PBKDF) as defined in RFC2898. Uses the SHA256
-     * hashing algorithm. This method is useful to attach an encryption key to a user based on his password. The
-     * iteration count will greatly affect performances, be sure to use something adapted to your server capacity.
-     *
-     * @see https://www.ietf.org/rfc/rfc2898.txt
      * @param string $password
      * @param string $salt
      * @param int $length
@@ -347,8 +332,7 @@ class Cryptography
     }
 
     /**
-     * Returns the configured baseline encryption algorithm to be used in the application with encrypt and decrypt
-     * methods.
+     * Returns the configured baseline legacy encryption algorithm for backward compatibility.
      *
      * @return string
      */
@@ -359,14 +343,31 @@ class Cryptography
     }
 
     /**
-     * Returns the configured default encryption key to be used in the application with encrypt and decrypt
-     * methods. Returns null if no default key has been specified.
+     * Returns the configured default encryption key to be used in the application with encrypt and decrypt methods.
      *
      * @return string|null
      */
     public static function getEncryptionDefaultKey(): ?string
     {
         $config = Configuration::getSecurity("encryption");
-        return $config['key'] ?? self::DEFAULT_ENCRYPTION_ALGORITHM;
+        return $config['key'] ?? null;
+    }
+
+    /**
+     * Normalize any provided key material to a fixed-size binary key.
+     * Uses SHA-256 KDF to derive 32 bytes suitable for AEAD keys.
+     *
+     * @param string $keyMaterial
+     * @param int $length
+     * @return string
+     */
+    private static function normalizeKey(string $keyMaterial, int $length = 32): string
+    {
+        $derived = hash('sha256', $keyMaterial, true);
+        if ($length <= 32) {
+            return substr($derived, 0, $length);
+        }
+        // Expand with HKDF if larger is ever needed
+        return hash_hkdf('sha256', $keyMaterial, $length, 'zephyrus-crypto', '');
     }
 }
