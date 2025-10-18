@@ -94,7 +94,8 @@ class ServerEnvironnement
 
     public function isHttps(): bool
     {
-        return ($this->serverVariables['HTTPS'] ?? "") == 'on';
+        return ($this->serverVariables['HTTPS'] ?? "") == 'on'
+            || $this->serverVariables['HTTP_X_FORWARDED_PROTO'] == 'https';
     }
 
     public function getHostname(): string
