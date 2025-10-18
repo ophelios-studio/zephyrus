@@ -29,8 +29,7 @@
     "ext-mbstring": "*",
     "ext-zip": "*",
     "ext-ctype": "*",
-    "ext-apcu": "*",
-    "ext-sodium": "*"
+    "ext-apcu": "*"
   },
   "require-dev": {
     "phpunit/phpunit": "10.*"
