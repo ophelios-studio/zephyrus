@@ -173,6 +173,9 @@ class RequestBody
      */
     private function parseXml(): array
     {
+        if (empty($this->rawData)) {
+            return [];
+        }
         try {
             return $this->xmlElementToStdClass(new SimpleXMLElement($this->rawData));
         } catch (Exception $e) {
