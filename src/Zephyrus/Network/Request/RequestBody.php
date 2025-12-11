@@ -158,6 +158,9 @@ class RequestBody
      */
     private function parseJson(): array
     {
+        if (empty($this->rawData)) {
+            return [];
+        }
         $decodedJson = json_decode($this->rawData);
         if (is_null($decodedJson)) {
             throw new JsonParseException($this->rawData);
@@ -170,6 +173,9 @@ class RequestBody
      */
     private function parseXml(): array
     {
+        if (empty($this->rawData)) {
+            return [];
+        }
         try {
             return $this->xmlElementToStdClass(new SimpleXMLElement($this->rawData));
         } catch (Exception $e) {
