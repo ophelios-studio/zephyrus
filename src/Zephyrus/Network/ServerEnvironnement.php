@@ -23,8 +23,21 @@ class ServerEnvironnement
         $protocol = $this->isHttps() ? "https" : "http";
         $serverPort = $this->getServerPort();
         $defaultPorts = ['http' => 80, 'https' => 443];
-        $port = $serverPort != $defaultPorts[$protocol] ? ":$serverPort" : "";
-        return "$protocol://" . $this->getHostname() . $port . $this->getRoute();
+
+        $host = $this->getHostname();
+
+        // If the host already includes a port (e.g. "localhost:8082"),
+        // do NOT append the server port again.
+        if (str_contains($host, ':')) {
+            $port = '';
+        } else {
+            $defaultPort = $defaultPorts[$protocol] ?? null;
+            $port = (!empty($serverPort) && $defaultPort !== null && (int) $serverPort !== (int) $defaultPort)
+                ? ':' . $serverPort
+                : '';
+        }
+
+        return $protocol . '://' . $host . $port . $this->getRoute();
     }
 
     public function getRawData(): string
