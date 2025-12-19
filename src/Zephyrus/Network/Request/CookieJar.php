@@ -11,6 +11,9 @@ class CookieJar
         $this->cookies = $cookies;
     }
 
+    /**
+     * @return Cookie
+     */
     public function create(string $name, string $value): Cookie
     {
         return new Cookie($name, $value);
