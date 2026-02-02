@@ -34,11 +34,8 @@ class Application
     protected ?Localization $localization = null;
     protected array $supportedLanguages;
 
-    public static function getInstance(): self
+    public static function getInstance(): ?self
     {
-        if (is_null(self::$instance)) {
-            throw new RuntimeException("Application instance must first be initialized with constructor.");
-        }
         return self::$instance;
     }
 
