@@ -15,6 +15,7 @@ use Zephyrus\Network\Response\StreamResponses;
 use Zephyrus\Network\Response\SuccessResponse;
 use Zephyrus\Network\Response\XmlResponses;
 use Zephyrus\Network\Router\Authorize;
+use Zephyrus\Network\Router\RequiresEnv;
 use Zephyrus\Network\Router\Root;
 use Zephyrus\Network\Router\RouteDefinition;
 use Zephyrus\Network\Router\RouterAttribute;
@@ -274,20 +275,56 @@ abstract class Controller
         return $rules;
     }
 
+    private static function isEnvSatisfied(ReflectionClass $class): bool
+    {
+        $parentClasses = [];
+        $currentClass = $class;
+        while ($currentClass = $currentClass->getParentClass()) {
+            $parentClasses[] = $currentClass;
+        }
+        array_unshift($parentClasses, $class);
+        $envSatisfied = true;
+
+        for ($i = count($parentClasses) - 1; $i >= 0; $i--) {
+            $currentClass = $parentClasses[$i];
+            $attributes = $currentClass->getAttributes();
+            foreach ($attributes as $attribute) {
+                if ($attribute->getName() == RequiresEnv::class) {
+                    $instance = $attribute->newInstance();
+                    $envSatisfied = $instance->isSatisfied();
+                }
+            }
+        }
+        return $envSatisfied;
+    }
+
     private static function initializeRoutesFromAttributes(RouteRepository $repository): void
     {
         $class = new ReflectionClass(static::class);
         $baseRoute = self::initializeBaseRoute($class);
         $rules = self::initializeBaseAuthorizationRules($class);
+        if (!self::isEnvSatisfied($class)) {
+            // Do not load routes if the environment is not satisfied
+            return;
+        }
 
         $methods = $class->getMethods(ReflectionMethod::IS_PUBLIC);
         foreach ($methods as $method) {
             $attributes = $method->getAttributes();
+            $envSatisfied = true;
             foreach ($attributes as $attribute) {
                 if ($attribute->getName() == Authorize::class) {
                     $instance = $attribute->newInstance();
                     $rules = array_merge($rules, $instance->getRules());
                 }
+                if ($attribute->getName() == RequiresEnv::class) {
+                    $instance = $attribute->newInstance();
+                    $envSatisfied = $instance->isSatisfied();
+                }
+            }
+            if (!$envSatisfied) {
+                // Do not load routes if the environment is not satisfied
+                continue;
             }
             foreach ($attributes as $attribute) {
                 if (in_array($attribute->getName(), RouterAttribute::SUPPORTED_ANNOTATIONS)) {
