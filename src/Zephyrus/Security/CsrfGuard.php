@@ -21,8 +21,11 @@ class CsrfGuard
     private ?Request $request;
     private CsrfConfiguration $configuration;
 
-    public static function generate(): string
+    public static function generate(string $mode = CsrfConfiguration::MODE_FORM): string
     {
+        if ($mode === CsrfConfiguration::MODE_SESSION) {
+            return self::getSessionToken();
+        }
         $name = self::generateFormName();
         $token = self::generateToken($name);
         return $name . '$' . $token;
@@ -64,7 +67,7 @@ class CsrfGuard
      */
     public function generateHiddenFields(): string
     {
-        $value = self::generate();
+        $value = self::generate($this->configuration->getMode());
         return '<input type="hidden" name="' . self::REQUEST_TOKEN_VALUE . '" value="' . $value . '" />';
     }
 
@@ -195,6 +198,22 @@ class CsrfGuard
     }
 
     /**
+     * Generates and stores in the current session a cryptographically random token that shall be validated during the
+     * run method. The token is unique per session and does not expire after validation.
+     *
+     * @return string
+     */
+    private static function getSessionToken(): string
+    {
+        $csrfData = Session::get('__CSRF_TOKEN', []);
+        if (!isset($csrfData['CSRFGuard_Session'])) {
+            $csrfData['CSRFGuard_Session'] = Cryptography::randomString(self::TOKEN_LENGTH);
+            Session::set('__CSRF_TOKEN', $csrfData);
+        }
+        return 'CSRFGuard_Session$' . $csrfData['CSRFGuard_Session'];
+    }
+
+    /**
      * Returns a random name to be used for a form csrf token.
      *
      * @return string
@@ -206,7 +225,7 @@ class CsrfGuard
 
     /**
      * Validates the given token with the one stored for the specified form name. Once validated, good or not, the token
-     * is removed from the session.
+     * is removed from the session (unless in session mode where it persists).
      *
      * @param string $formName
      * @param string $token
@@ -217,7 +236,8 @@ class CsrfGuard
         $sortedCsrf = $this->getStoredCsrfToken($formName);
         if (!is_null($sortedCsrf)) {
             $csrfData = Session::get('__CSRF_TOKEN', []);
-            if (is_null($this->request->getHeader('CSRF_KEEP_ALIVE'))
+            if ($this->configuration->getMode() !== CsrfConfiguration::MODE_SESSION
+                && is_null($this->request->getHeader('CSRF_KEEP_ALIVE'))
                 && is_null($this->request->getParameter('CSRF_KEEP_ALIVE'))) {
                 $csrfData[$formName] = '';
                 Session::set('__CSRF_TOKEN', $csrfData);
