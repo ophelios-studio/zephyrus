@@ -2,6 +2,7 @@
 
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use Zephyrus\Core\Configuration\Security\CsrfConfiguration;
 use Zephyrus\Core\Session;
 use Zephyrus\Exceptions\Security\InvalidCsrfException;
 use Zephyrus\Exceptions\Security\MissingCsrfException;
@@ -14,7 +15,7 @@ class CsrfGuardTest extends TestCase
     public function testHiddenFields()
     {
         $req = RequestUtility::get("/test");
-        $csrf = new CsrfGuard($req);
+        $csrf = new CsrfGuard($req, new CsrfConfiguration());
         $result = $csrf->generateHiddenFields();
         self::assertTrue($this->hasHiddenFields($result));
         self::assertTrue($csrf->isHtmlIntegrationEnabled());
@@ -24,9 +25,9 @@ class CsrfGuardTest extends TestCase
     public function testGuard()
     {
         $req = RequestUtility::get("/test");
-        $csrf = new CsrfGuard($req, [
+        $csrf = new CsrfGuard($req, new CsrfConfiguration([
             'guard_methods' => ['DELETE']
-        ]);
+        ]));
         $csrf->run();
         $output = $csrf->generateHiddenFields();
         $fields = $this->getHiddenFieldValues($output);
@@ -34,9 +35,9 @@ class CsrfGuardTest extends TestCase
         $value = $fields[2];
 
         $req = RequestUtility::delete("/test", 'CSRFToken=' . $name . '$' . $value);
-        $csrf = new CsrfGuard($req, [
+        $csrf = new CsrfGuard($req, new CsrfConfiguration([
             'guard_methods' => ['DELETE']
-        ]);
+        ]));
         $csrf->run();
         self::assertEquals($name . '$' . $value, $req->getParameter('CSRFToken'));
     }
@@ -44,7 +45,7 @@ class CsrfGuardTest extends TestCase
     public function testFormInject()
     {
         $req = RequestUtility::post("/test");
-        $csrf = new CsrfGuard($req);
+        $csrf = new CsrfGuard($req, new CsrfConfiguration());
         $html = '<html><body><form action="test" method="get"><input type="text" name="test" /></form></body>';
         $result = $csrf->injectForms($html);
         self::assertTrue($this->hasHiddenFields($result));
@@ -53,7 +54,7 @@ class CsrfGuardTest extends TestCase
     public function testFormInjectExclusion()
     {
         $req = RequestUtility::post("/test");
-        $csrf = new CsrfGuard($req);
+        $csrf = new CsrfGuard($req, new CsrfConfiguration());
         $html = '<html><body><form nocsrf="true" action="test" method="get"><input type="text" name="test" /></form></body>';
         $result = $csrf->injectForms($html);
         self::assertEquals($html, $result);
@@ -62,11 +63,11 @@ class CsrfGuardTest extends TestCase
     public function testProperties()
     {
         $req = RequestUtility::post("/test");
-        $csrf = new CsrfGuard($req, [
+        $csrf = new CsrfGuard($req, new CsrfConfiguration([
             'enabled' => false,
             'guard_methods' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
             'html_integration_enabled' => false
-        ]);
+        ]));
         self::assertFalse($csrf->isEnabled());
         self::assertFalse($csrf->isHtmlIntegrationEnabled());
         self::assertTrue($csrf->isDeleteSecured());
@@ -79,12 +80,12 @@ class CsrfGuardTest extends TestCase
     public function testRequestException()
     {
         $req = RequestUtility::post("/test");
-        $csrf = new CsrfGuard($req, [
+        $csrf = new CsrfGuard($req, new CsrfConfiguration([
             'enabled' => true,
             'guard_methods' => ['POST', 'PUT', 'PATCH', 'DELETE'],
             'html_integration_enabled' => true,
             'exceptions' => ['/test'] // Direct exception
-        ]);
+        ]));
         self::assertTrue($csrf->isPostSecured());
         $csrf->run();
         self::assertTrue(true); // if reach is ok
@@ -93,12 +94,12 @@ class CsrfGuardTest extends TestCase
     public function testRequestRegexException()
     {
         $req = RequestUtility::post("/test/toto");
-        $csrf = new CsrfGuard($req, [
+        $csrf = new CsrfGuard($req, new CsrfConfiguration([
             'enabled' => true,
             'guard_methods' => ['POST', 'PUT', 'PATCH', 'DELETE'],
             'html_integration_enabled' => true,
             'exceptions' => ['\/test.*'] // Regex to validate all route that begins with /test
-        ]);
+        ]));
         self::assertTrue($csrf->isPostSecured());
         $csrf->run();
         self::assertTrue(true); // if reach is ok
@@ -108,10 +109,10 @@ class CsrfGuardTest extends TestCase
     {
         $this->expectException(RuntimeException::class);
         $req = RequestUtility::post("/test");
-        new CsrfGuard($req, [
+        new CsrfGuard($req, new CsrfConfiguration([
             'enabled' => true,
             'guard_methods' => ['GET', 'POST', 'PUT', 'OUPPPS', 'DELETE']
-        ]);
+        ]));
     }
 
     public function testGuardMissingException()
@@ -119,7 +120,7 @@ class CsrfGuardTest extends TestCase
         $this->expectException(MissingCsrfException::class);
         $this->expectExceptionMessage("ZEPHYRUS SECURITY: The submitted form is missing the needed CSRF tokens. The requested route [POST /test] is configured to proceed the CSRF mitigation. If you think this is not the case, you can add the route to the CSRF exceptions, use the 'nocsrf' attribute on the &lt;form&gt; or disable the feature.");
         $req = RequestUtility::buildFormRequest("/test", HttpMethod::POST);
-        $csrf = new CsrfGuard($req);
+        $csrf = new CsrfGuard($req, new CsrfConfiguration());
         $csrf->run();
     }
 
@@ -127,14 +128,14 @@ class CsrfGuardTest extends TestCase
     {
         $this->expectException(InvalidCsrfException::class);
         $req = RequestUtility::put("/test", "CSRFToken=invalid");
-        $csrf = new CsrfGuard($req);
+        $csrf = new CsrfGuard($req, new CsrfConfiguration());
         $csrf->run();
     }
 
     public function testGuardInvalidException()
     {
         $req = RequestUtility::put("/test", "CSRFToken=invalid");
-        $csrf = new CsrfGuard($req);
+        $csrf = new CsrfGuard($req, new CsrfConfiguration());
         try {
             $csrf->run();
         } catch (InvalidCsrfException $e) {
@@ -147,7 +148,7 @@ class CsrfGuardTest extends TestCase
     {
         $this->expectException(InvalidCsrfException::class);
         $req = RequestUtility::patch("/test", "CSRFToken=invalid");
-        $csrf = new CsrfGuard($req);
+        $csrf = new CsrfGuard($req, new CsrfConfiguration());
         $csrf->run();
     }
 
@@ -155,7 +156,7 @@ class CsrfGuardTest extends TestCase
     {
         $this->expectException(InvalidCsrfException::class);
         $req = RequestUtility::post("/test", "CSRFToken=invalid");
-        $csrf = new CsrfGuard($req);
+        $csrf = new CsrfGuard($req, new CsrfConfiguration());
         $csrf->run();
     }
 
@@ -163,9 +164,9 @@ class CsrfGuardTest extends TestCase
     {
         $this->expectException(MissingCsrfException::class);
         $req = RequestUtility::get("/test");
-        $csrf = new CsrfGuard($req, [
+        $csrf = new CsrfGuard($req, new CsrfConfiguration([
             'guard_methods' => ['GET']
-        ]);
+        ]));
         $csrf->run();
     }
 
@@ -173,7 +174,7 @@ class CsrfGuardTest extends TestCase
     {
         $this->expectException(InvalidCsrfException::class);
         $req = RequestUtility::get("/test");
-        $csrf = new CsrfGuard($req);
+        $csrf = new CsrfGuard($req, new CsrfConfiguration());
         $csrf->run();
         $output = $csrf->generateHiddenFields();
         $fields = $this->getHiddenFieldValues($output);
@@ -181,7 +182,7 @@ class CsrfGuardTest extends TestCase
         $value = $fields[2];
 
         $req = RequestUtility::delete("/test", "CSRFToken=" . $name . '$' . $value);
-        $csrf = new CsrfGuard($req);
+        $csrf = new CsrfGuard($req, new CsrfConfiguration());
         Session::remove('__CSRF_TOKEN');
         $csrf->run();
     }

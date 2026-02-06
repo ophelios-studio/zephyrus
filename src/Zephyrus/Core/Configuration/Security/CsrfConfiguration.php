@@ -5,12 +5,23 @@ use Zephyrus\Core\Configuration\Configuration;
 
 class CsrfConfiguration extends Configuration
 {
+    public const MODE_FORM = 'form';
+    public const MODE_SESSION = 'session';
+
     public const array DEFAULT_CONFIGURATIONS = [
         'enabled' => true, // Enable the CSRF mitigation feature
+        'mode' => self::MODE_FORM, // Defines the mitigation mode (form = strict per form token, session = single per session token)
         'html_integration_enabled' => true, // Automatically insert needed HTML into forms
         'guard_methods' => ['POST', 'PUT', 'DELETE', 'PATCH'], // List of guarded methods
         'exceptions' => [] // List of route exceptions (e.g. ['\/test.*'] meaning all routes beginning with /test)
     ];
+
+    /**
+     * Defines the mitigation mode (form = strict per form token, session = single per session token).
+     *
+     * @var string
+     */
+    private string $mode = self::MODE_FORM;
 
     /**
      * Determines the HTTP request methods that should be secured by the CSRF mitigation. It implies that for EVERY
@@ -49,6 +60,7 @@ class CsrfConfiguration extends Configuration
     {
         parent::__construct($configurations);
         $this->initializeEnabled();
+        $this->initializeMode();
         $this->initializeAutomaticHtmlIntegration();
         $this->initializeGuardedMethods();
         $this->initializeExceptions();
@@ -57,6 +69,11 @@ class CsrfConfiguration extends Configuration
     public function isEnabled(): bool
     {
         return $this->enabled;
+    }
+
+    public function getMode(): string
+    {
+        return $this->mode;
     }
 
     /**
@@ -84,6 +101,17 @@ class CsrfConfiguration extends Configuration
         $this->enabled = (bool) ((isset($this->configurations['enabled']))
             ? $this->configurations['enabled']
             : self::DEFAULT_CONFIGURATIONS['enabled']);
+    }
+
+    private function initializeMode(): void
+    {
+        $this->mode = (isset($this->configurations['mode']))
+            ? $this->configurations['mode']
+            : self::DEFAULT_CONFIGURATIONS['mode'];
+
+        if (!in_array($this->mode, [self::MODE_FORM, self::MODE_SESSION])) {
+            throw new RuntimeException("CSRF mode is invalid. Must be one of the following values: " . self::MODE_FORM . ", " . self::MODE_SESSION . ".");
+        }
     }
 
     private function initializeAutomaticHtmlIntegration(): void

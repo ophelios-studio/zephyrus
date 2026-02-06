@@ -7,6 +7,7 @@ class IdsConfiguration extends Configuration
 {
     public const array DEFAULT_CONFIGURATIONS = [
         'enabled' => false, // Enable the intrusion detection feature
+        'cached' => true, // Uses the APCu caching for the IDS rules
         'custom_file' => null, // Change the default rule file
         'impact_threshold' => 0, // Minimum impact to be considered to throw an exception (default is any detection)
         'monitor_cookies' => true, // Verifies the content of request cookies
@@ -15,6 +16,7 @@ class IdsConfiguration extends Configuration
     ];
 
     private bool $enabled;
+    private bool $cached;
     private int $impactThreshold;
     private array $exceptions;
     private bool $includeCookiesMonitoring;
@@ -25,6 +27,7 @@ class IdsConfiguration extends Configuration
     {
         parent::__construct($configurations);
         $this->initializeEnabled();
+        $this->initializeCached();
         $this->initializeImpactThreshold();
         $this->initializeExceptions();
         $this->initializeCookieMonitoring();
@@ -35,6 +38,11 @@ class IdsConfiguration extends Configuration
     public function isEnabled(): bool
     {
         return $this->enabled;
+    }
+
+    public function isCached(): bool
+    {
+        return $this->cached;
     }
 
     public function getImpactThreshold(): int
@@ -67,6 +75,13 @@ class IdsConfiguration extends Configuration
         $this->enabled = (bool) ((isset($this->configurations['enabled']))
             ? $this->configurations['enabled']
             : self::DEFAULT_CONFIGURATIONS['enabled']);
+    }
+
+    private function initializeCached(): void
+    {
+        $this->cached = (bool) ((isset($this->configurations['cached']))
+            ? $this->configurations['cached']
+            : self::DEFAULT_CONFIGURATIONS['cached']);
     }
 
     private function initializeImpactThreshold(): void
