@@ -22,6 +22,24 @@ class IntrusionDetection
         $this->initializeMonitor();
     }
 
+    private function initializeMonitor(): void
+    {
+        $loader = new IntrusionRuleLoader($this->configuration->getCustomFile());
+        $intrusionRules = [];
+        if ($this->configuration->isCached()) {
+            $cache = new IntrusionCache();
+            $intrusionRules = $cache->getRules();
+            if (empty($intrusionRules)) {
+                $intrusionRules = $loader->loadFromFile();
+                $cache->cache($intrusionRules);
+            }
+        }
+        if (empty($intrusionRules)) {
+            $intrusionRules = $loader->loadFromFile();
+        }
+        $this->monitor = new IntrusionMonitor($intrusionRules);
+    }
+
     /**
      * Execute the intrusion detection analysis using the specified monitored inputs. If an intrusion is detected, the
      * method will throw an exception.
@@ -35,6 +53,22 @@ class IntrusionDetection
         if ($this->report->getImpact() > $this->configuration->getImpactThreshold()) {
             throw new IntrusionDetectionException($this->report);
         }
+    }
+
+    /**
+     * Prepares the request parameters to be verified by the IDS monitor. Will automatically include all request data
+     * and cookies if included in configurations.
+     *
+     * @return array
+     */
+    private function getMonitoringInputs(): array
+    {
+        return [
+            'parameters' => $this->request->getParameters(),
+            'arguments' => $this->request->getArguments(),
+            'cookies' => ($this->configuration->isCookieMonitoring()) ? $this->request->getCookieJar()->getAll() : [],
+            'url' => ($this->configuration->isUrlMonitoring()) ? ['requested_url' => $this->request->getRequestedUrl()] : [],
+        ];
     }
 
     /**
@@ -57,33 +91,5 @@ class IntrusionDetection
     public function getReport(): ?IntrusionReport
     {
         return $this->report;
-    }
-
-    private function initializeMonitor(): void
-    {
-        $loader = new IntrusionRuleLoader($this->configuration->getCustomFile());
-        $cache = new IntrusionCache();
-        $intrusionRules = $cache->getRules();
-        if (empty($intrusionRules)) {
-            $intrusionRules = $loader->loadFromFile();
-            $cache->cache($intrusionRules);
-        }
-        $this->monitor = new IntrusionMonitor($intrusionRules);
-    }
-
-    /**
-     * Prepares the request parameters to be verified by the IDS monitor. Will automatically include all request data
-     * and cookies if included in configurations.
-     *
-     * @return array
-     */
-    private function getMonitoringInputs(): array
-    {
-        return [
-            'parameters' => $this->request->getParameters(),
-            'arguments' => $this->request->getArguments(),
-            'cookies' => ($this->configuration->isCookieMonitoring()) ? $this->request->getCookieJar()->getAll() : [],
-            'url' => ($this->configuration->isUrlMonitoring()) ? ['requested_url' => $this->request->getRequestedUrl()] : [],
-        ];
     }
 }
