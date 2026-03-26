@@ -322,7 +322,7 @@ class Session
     private function initializeCookie(): void
     {
         session_set_cookie_params([
-            'lifetime' => $this->configuration->getLifetime(),
+            'lifetime' => 0, // Session cookie -- expires when browser closes. Server-side gc_maxlifetime handles inactivity expiry.
             'secure' => $_SERVER['HTTPS'] ?? false,
             'httponly' => true,
             'samesite' => 'Lax'
